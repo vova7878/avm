@@ -8,8 +8,10 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.DataInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 
@@ -17,12 +19,19 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         Display.init();
-        byte[] data;
-        try (FileInputStream in = new FileInputStream("nodes.txt")) {
-            data = new byte[in.available()];
-            new DataInputStream(in).readFully(data);
+        String data;
+        File nodes = new File("nodes.txt");
+        InputStream in;
+        if (nodes.isFile()) {
+            in = new FileInputStream(nodes);
+        } else {
+            in = Main.class.getResourceAsStream("Samples.txt");
         }
-        parseNodes(new String(data));
+        byte[] bytes = new byte[in.available()];
+        new DataInputStream(in).readFully(bytes);
+        data = new String(bytes);
+        in.close();
+        parseNodes(data);
         Machine m = Machine.get();
         m.invoke(m.findNode("main.main"), null);
     }
@@ -72,9 +81,9 @@ public class Main {
                     12, 0);
             m.setNodeName(n, "display.pixel(III)");
             n = m.newNode((node, data)
-                    -> clear(data.getInt()),
+                    -> fill(data.getInt()),
                     4, 0);
-            m.setNodeName(n, "display.clear(I)");
+            m.setNodeName(n, "display.fill(I)");
             n = m.newNode((node, data)
                     -> System.out.println(data.getInt()),
                     4, 0);
@@ -85,7 +94,7 @@ public class Main {
             display.img2.setRGB(x, y, color);
         }
 
-        private static void clear(int color) {
+        private static void fill(int color) {
             Graphics g = display.img2.getGraphics();
             g.setColor(new Color(color, true));
             g.fillRect(0, 0, display.w, display.h);
