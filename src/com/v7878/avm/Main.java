@@ -84,10 +84,6 @@ public class Main {
                     -> fill(data.getInt()),
                     4, 0);
             m.setNodeName(n, "display.fill(I)");
-            n = m.newNode((node, data)
-                    -> System.out.println(data.getInt()),
-                    4, 0);
-            m.setNodeName(n, "println(I)");
         }
 
         private static void pixel(int x, int y, int color) {
