@@ -1,9 +1,11 @@
 .node "main.main"
-  .data 20
-    300 300                                  # width and height
-    0xff808080                               # background color
-    0xff00fa00                               # foreground color
-    1                                        # increment
+  .data 28
+    200 200                                  # width and height
+    0xfffafafa                               # background color
+    0xff4285f4                               # foreground color
+    1                                        # increment and booleans
+    10                                       # min radius
+    90                                       # max radius
   .enddata
   .code 46 0 0
     find-node v0 "display.init(II)"
@@ -11,10 +13,11 @@
     find-node v8 "display.pixel(III)"
     find-node v12 "display.fill(I)"
     find-node v16 "main.circle(III)"
+    move32 d20 v28                           # set radius to min;
     invoke v0 d0 8 v0 0                      # init(width, height);
-    invoke v12 d8 4 v0 0                     # fill(color);
-    const32 v28 50                           # radius = 50;
 
+    :draw
+    invoke v12 d8 4 v0 0                     # fill(color);
     :start
     invoke v16 v20 12 v32 1                  # circle(x, y, r);
     if-gtz v32 :end
@@ -30,15 +33,31 @@
     add-int32 v24 d16 v24                    # y++;
     cmp-int32 v24 d4 v32
     if-ltz v32 :start
-
+    const32 v24 0                            # y = 0;
     invoke v4 v0 0 v0 0                      # swap();
+
+    if-nez v33 :if_1
+    add-int32 v28 d16 v28                    # r++;
+    cmp-int32 v28 d24 v32
+    if-nez v32 :if_2
+    move8 d16 v33
+    :if_2
+    goto :end_2
+    :if_1
+    sub-int32 v28 d16 v28                    # r--;
+    cmp-int32 v28 d20 v32
+    if-nez v32 :end_2
+    move8 d17 v33
+    :end_2
+    goto :draw
+
     return
   .endcode
 .endnode
 
 .node "main.circle(III)"
   .data 8
-    150 150                                  # center x and y
+    100 100                                  # center x and y
   .enddata
   .code 13 12 1
     sub-int32 p0 d0 p0                       # x = x - cx;
