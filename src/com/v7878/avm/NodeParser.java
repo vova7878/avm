@@ -28,12 +28,12 @@ public class NodeParser {
     public static final String ALL_INT_NO_POSTFIX = "(" + INT32 + "|" + OCTAL_INT32 + "|" + BINARY_INT32 + "|" + HEX_INT32 + ")";
     public static final String INT_POSTFIXES = "[zZsSlLwW]";
     public static final String ALL_INT_WITH_POSTFIX = ALL_INT_NO_POSTFIX + INT_POSTFIXES;
-    public static final String ALL_INT = ALL_INT_NO_POSTFIX + INT_POSTFIXES + "?";
+    //public static final String ALL_INT = ALL_INT_NO_POSTFIX + INT_POSTFIXES + "?";
     public static final String STRING = "\"( |\\\\u[0-9a-fA-F]{4}|\\\\t|\\\\b|\\\\n|\\\\f|\\\\r|\\\\\"|\\\\'|\\\\\\\\|[^\"\\s\\\\])*\"";
     public static final String REGISTER = "[dDvVpPrR]" + SIMPLE_UINT;
     public static final String IDENTIFIER = ":\\w+";
     public static final String INSTRUCTION_NAME = "\\w(-?\\w+)*";
-    public static final String NAMED_INSTRUCTION_PARAMETER = "(?<value>" + STRING + "|" + ALL_INT + "|" + REGISTER + "|" + IDENTIFIER + ")";
+    //public static final String INSTRUCTION_PARAMETER = "(?<value>" + STRING + "|" + ALL_INT + "|" + REGISTER + "|" + IDENTIFIER + ")";
 
     private static final Map<String, InstructionCreator> icreator = new HashMap<>();
 

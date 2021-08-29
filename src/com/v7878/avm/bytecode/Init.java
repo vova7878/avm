@@ -153,7 +153,9 @@ public class Init {
             XorInt32.init();
             XorInt64.init();
             XorInt128.init();
-
+            
+            DoubleToInt32.init();
+            DoubleToInt64.init();
             Int8ToInt16.init();
             Int8ToInt32.init();
             Int8ToInt64.init();
@@ -168,6 +170,8 @@ public class Init {
             Int64ToInt128.init();
             Int64ToFloat.init();
             Int64ToDouble.init();
+            Int128ToFloat.init();
+            Int128ToDouble.init();
 
             Nop.init();
             Return.init();
@@ -175,6 +179,7 @@ public class Init {
             Goto.init();
             FindNode.init();
             Invoke.init();
+            SizeOf.init();
         }
     }
 }

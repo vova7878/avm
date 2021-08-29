@@ -1,7 +1,7 @@
 .node "main.main"
   .data 28
     200 200                                  # width and height
-    0xfffafafa                               # background color
+    0xffffffff                               # background color
     0xff4285f4                               # foreground color
     1                                        # increment and booleans
     10                                       # min radius
