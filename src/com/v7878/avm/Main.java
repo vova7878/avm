@@ -21,6 +21,7 @@ public class Main {
         Display.init();
         String data;
         File nodes = new File("nodes.txt");
+        System.out.println("from file: " + nodes.isFile());
         InputStream in;
         if (nodes.isFile()) {
             in = new FileInputStream(nodes);
@@ -84,10 +85,18 @@ public class Main {
                     -> fill(data.getInt()),
                     4, 0);
             m.setNodeName(n, "display.fill(I)");
+            n = m.newNode((node, data) -> {
+                data.putInt(getColor(data.getInt(), data.getInt()));
+            }, 8, 4);
+            m.setNodeName(n, "display.getColor(II)");
         }
 
         private static void pixel(int x, int y, int color) {
             display.img2.setRGB(x, y, color);
+        }
+
+        private static int getColor(int x, int y) {
+            return display.img1.getRGB(x, y);
         }
 
         private static void fill(int color) {

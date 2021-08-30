@@ -151,7 +151,9 @@ public class Machine {
     }
 
     private Node deleteNode(int index) {
-        return nodes.remove(index - 1);
+        synchronized (nodes) {
+            return nodes.remove(index - 1);
+        }
     }
 
     public Node deleteNode(Node node) {
@@ -169,7 +171,9 @@ public class Machine {
     }
 
     private int putNode(Node value) {
-        return nodes.put(value) + 1;
+        synchronized (nodes) {
+            return nodes.put(value) + 1;
+        }
     }
 
     @FunctionalInterface

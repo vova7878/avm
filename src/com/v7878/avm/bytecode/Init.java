@@ -81,6 +81,13 @@ public class Init {
             Move128.init();
             MoveA.init();
 
+            GetData8.init();
+            GetData16.init();
+            GetData32.init();
+            GetData64.init();
+            GetData128.init();
+            GetDataA.init();
+
             MulDouble.init();
             MulFloat.init();
             MulInt8.init();
@@ -153,9 +160,11 @@ public class Init {
             XorInt32.init();
             XorInt64.init();
             XorInt128.init();
-            
+
             DoubleToInt32.init();
             DoubleToInt64.init();
+            FloatToInt32.init();
+            FloatToInt64.init();
             Int8ToInt16.init();
             Int8ToInt32.init();
             Int8ToInt64.init();
@@ -180,6 +189,8 @@ public class Init {
             FindNode.init();
             Invoke.init();
             SizeOf.init();
+            Alloc.init();
+            Delete.init();
         }
     }
 }
