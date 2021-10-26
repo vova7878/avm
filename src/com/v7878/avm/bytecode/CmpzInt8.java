@@ -8,7 +8,9 @@ import com.v7878.avm.utils.DualBuffer;
 public class CmpzInt8 extends SimpleInstruction {
 
     static void init() {
-        NodeParser.addCreator("cmpz-int8", new NodeParser.SimpleInstructionCreator((objs) -> new CmpzInt8((int) objs[0], (int) objs[1]), Register, Register));
+        NodeParser.addCreator("cmpz-int8", new NodeParser.SimpleInstructionCreator(
+                (objs) -> new CmpzInt8((int) objs[0], (int) objs[1]),
+                Register, Register));
     }
 
     private final int A, B;

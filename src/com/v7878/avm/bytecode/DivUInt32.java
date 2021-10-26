@@ -8,7 +8,9 @@ import com.v7878.avm.utils.DualBuffer;
 public class DivUInt32 extends SimpleInstruction {
 
     static void init() {
-        NodeParser.addCreator("div-uint32", new NodeParser.SimpleInstructionCreator((objs) -> new DivUInt32((int) objs[0], (int) objs[1], (int) objs[2]), Register, Register, Register));
+        NodeParser.addCreator("div-uint32", new NodeParser.SimpleInstructionCreator(
+                (objs) -> new DivUInt32((int) objs[0], (int) objs[1], (int) objs[2]),
+                Register, Register, Register));
     }
 
     private final int A, B, C;

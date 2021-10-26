@@ -8,7 +8,9 @@ import com.v7878.avm.utils.DualBuffer;
 public class UShrInt64 extends SimpleInstruction {
 
     static void init() {
-        NodeParser.addCreator("ushr-int64", new NodeParser.SimpleInstructionCreator((objs) -> new UShrInt64((int) objs[0], (int) objs[1], (int) objs[2]), Register, Register, Register));
+        NodeParser.addCreator("ushr-int64", new NodeParser.SimpleInstructionCreator(
+                (objs) -> new UShrInt64((int) objs[0], (int) objs[1], (int) objs[2]),
+                Register, Register, Register));
     }
 
     private final int A, B, C;

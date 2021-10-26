@@ -8,7 +8,9 @@ import com.v7878.avm.utils.DualBuffer;
 public class Move8 extends SimpleInstruction {
 
     static void init() {
-        NodeParser.addCreator("move8", new NodeParser.SimpleInstructionCreator((objs) -> new Move8((int) objs[0], (int) objs[1]), Register, Register));
+        NodeParser.addCreator("move8", new NodeParser.SimpleInstructionCreator(
+                (objs) -> new Move8((int) objs[0], (int) objs[1]),
+                Register, Register));
     }
 
     private final int A, B;

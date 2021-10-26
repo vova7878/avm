@@ -8,7 +8,9 @@ import com.v7878.avm.utils.DualBuffer;
 public class AddFloat extends SimpleInstruction {
 
     static void init() {
-        NodeParser.addCreator("add-float", new NodeParser.SimpleInstructionCreator((objs) -> new AddFloat((int) objs[0], (int) objs[1], (int) objs[2]), Register, Register, Register));
+        NodeParser.addCreator("add-float", new NodeParser.SimpleInstructionCreator(
+                (objs) -> new AddFloat((int) objs[0], (int) objs[1], (int) objs[2]),
+                Register, Register, Register));
     }
 
     private final int A, B, C;

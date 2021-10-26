@@ -9,7 +9,9 @@ import com.v7878.avm.utils.DualBuffer;
 public class Const16 extends SimpleInstruction {
 
     static void init() {
-        NodeParser.addCreator("const16", new NodeParser.SimpleInstructionCreator((objs) -> new Const16((int) objs[0], (short) objs[1]), Register, Int16));
+        NodeParser.addCreator("const16", new NodeParser.SimpleInstructionCreator(
+                (objs) -> new Const16((int) objs[0], (short) objs[1]),
+                Register, Int16));
     }
 
     private final int A;

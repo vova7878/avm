@@ -8,7 +8,9 @@ import com.v7878.avm.utils.DualBuffer;
 public class Move64 extends SimpleInstruction {
 
     static void init() {
-        NodeParser.addCreator("move64", new NodeParser.SimpleInstructionCreator((objs) -> new Move64((int) objs[0], (int) objs[1]), Register, Register));
+        NodeParser.addCreator("move64", new NodeParser.SimpleInstructionCreator(
+                (objs) -> new Move64((int) objs[0], (int) objs[1]),
+                Register, Register));
     }
 
     private final int A, B;

@@ -8,7 +8,9 @@ import com.v7878.avm.utils.DualBuffer;
 public class XorInt16 extends SimpleInstruction {
 
     static void init() {
-        NodeParser.addCreator("xor-int16", new NodeParser.SimpleInstructionCreator((objs) -> new XorInt16((int) objs[0], (int) objs[1], (int) objs[2]), Register, Register, Register));
+        NodeParser.addCreator("xor-int16", new NodeParser.SimpleInstructionCreator(
+                (objs) -> new XorInt16((int) objs[0], (int) objs[1], (int) objs[2]),
+                Register, Register, Register));
     }
 
     private final int A, B, C;

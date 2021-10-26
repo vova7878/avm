@@ -8,7 +8,9 @@ import com.v7878.avm.utils.DualBuffer;
 public class NegInt64 extends SimpleInstruction {
 
     static void init() {
-        NodeParser.addCreator("neg-int64", new NodeParser.SimpleInstructionCreator((objs) -> new NegInt64((int) objs[0], (int) objs[1]), Register, Register));
+        NodeParser.addCreator("neg-int64", new NodeParser.SimpleInstructionCreator(
+                (objs) -> new NegInt64((int) objs[0], (int) objs[1]),
+                Register, Register));
     }
 
     private final int A, B;

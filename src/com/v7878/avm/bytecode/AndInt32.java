@@ -8,7 +8,9 @@ import com.v7878.avm.utils.DualBuffer;
 public class AndInt32 extends SimpleInstruction {
 
     static void init() {
-        NodeParser.addCreator("and-int32", new NodeParser.SimpleInstructionCreator((objs) -> new AndInt32((int) objs[0], (int) objs[1], (int) objs[2]), Register, Register, Register));
+        NodeParser.addCreator("and-int32", new NodeParser.SimpleInstructionCreator(
+                (objs) -> new AndInt32((int) objs[0], (int) objs[1], (int) objs[2]),
+                Register, Register, Register));
     }
 
     private final int A, B, C;

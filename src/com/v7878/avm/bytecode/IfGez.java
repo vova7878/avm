@@ -10,7 +10,9 @@ import com.v7878.avm.utils.DualBuffer;
 public class IfGez implements Instruction {
 
     static void init() {
-        NodeParser.addCreator("if-gez", new NodeParser.SimpleInstructionCreator((objs) -> new IfGez((int) objs[0], (int) objs[1]), Register, Identifier));
+        NodeParser.addCreator("if-gez", new NodeParser.SimpleInstructionCreator(
+                (objs) -> new IfGez((int) objs[0], (int) objs[1]),
+                Register, Identifier));
     }
 
     private final int A, B;

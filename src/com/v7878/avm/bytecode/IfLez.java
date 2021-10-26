@@ -10,7 +10,9 @@ import com.v7878.avm.utils.DualBuffer;
 public class IfLez implements Instruction {
 
     static void init() {
-        NodeParser.addCreator("if-lez", new NodeParser.SimpleInstructionCreator((objs) -> new IfLez((int) objs[0], (int) objs[1]), Register, Identifier));
+        NodeParser.addCreator("if-lez", new NodeParser.SimpleInstructionCreator(
+                (objs) -> new IfLez((int) objs[0], (int) objs[1]),
+                Register, Identifier));
     }
 
     private final int A, B;

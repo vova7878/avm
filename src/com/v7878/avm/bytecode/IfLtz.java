@@ -10,7 +10,9 @@ import com.v7878.avm.utils.DualBuffer;
 public class IfLtz implements Instruction {
 
     static void init() {
-        NodeParser.addCreator("if-ltz", new NodeParser.SimpleInstructionCreator((objs) -> new IfLtz((int) objs[0], (int) objs[1]), Register, Identifier));
+        NodeParser.addCreator("if-ltz", new NodeParser.SimpleInstructionCreator(
+                (objs) -> new IfLtz((int) objs[0], (int) objs[1]),
+                Register, Identifier));
     }
 
     private final int A, B;

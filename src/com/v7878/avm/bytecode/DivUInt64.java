@@ -9,7 +9,9 @@ import com.v7878.avm.utils.NewApiUtils;
 public class DivUInt64 extends SimpleInstruction {
 
     static void init() {
-        NodeParser.addCreator("div-uint64", new NodeParser.SimpleInstructionCreator((objs) -> new DivUInt64((int) objs[0], (int) objs[1], (int) objs[2]), Register, Register, Register));
+        NodeParser.addCreator("div-uint64", new NodeParser.SimpleInstructionCreator(
+                (objs) -> new DivUInt64((int) objs[0], (int) objs[1], (int) objs[2]),
+                Register, Register, Register));
     }
 
     private final int A, B, C;

@@ -9,7 +9,9 @@ import com.v7878.avm.utils.Wide;
 public class AndInt128 extends SimpleInstruction {
 
     static void init() {
-        NodeParser.addCreator("and-int128", new NodeParser.SimpleInstructionCreator((objs) -> new AndInt128((int) objs[0], (int) objs[1], (int) objs[2]), Register, Register, Register));
+        NodeParser.addCreator("and-int128", new NodeParser.SimpleInstructionCreator(
+                (objs) -> new AndInt128((int) objs[0], (int) objs[1], (int) objs[2]),
+                Register, Register, Register));
     }
 
     private final int A, B, C;

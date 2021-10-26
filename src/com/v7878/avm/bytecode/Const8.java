@@ -9,7 +9,9 @@ import com.v7878.avm.utils.DualBuffer;
 public class Const8 extends SimpleInstruction {
 
     static void init() {
-        NodeParser.addCreator("const8", new NodeParser.SimpleInstructionCreator((objs) -> new Const8((int) objs[0], (byte) objs[1]), Register, Int8));
+        NodeParser.addCreator("const8", new NodeParser.SimpleInstructionCreator(
+                (objs) -> new Const8((int) objs[0], (byte) objs[1]),
+                Register, Int8));
     }
 
     private final int A;

@@ -9,7 +9,9 @@ import com.v7878.avm.utils.DualBuffer;
 public class Const64 extends SimpleInstruction {
 
     static void init() {
-        NodeParser.addCreator("const64", new NodeParser.SimpleInstructionCreator((objs) -> new Const64((int) objs[0], (long) objs[1]), Register, Int64));
+        NodeParser.addCreator("const64", new NodeParser.SimpleInstructionCreator(
+                (objs) -> new Const64((int) objs[0], (long) objs[1]),
+                Register, Int64));
     }
 
     private final int A;

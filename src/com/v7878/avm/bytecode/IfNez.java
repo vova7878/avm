@@ -10,7 +10,9 @@ import com.v7878.avm.utils.DualBuffer;
 public class IfNez implements Instruction {
 
     static void init() {
-        NodeParser.addCreator("if-nez", new NodeParser.SimpleInstructionCreator((objs) -> new IfNez((int) objs[0], (int) objs[1]), Register, Identifier));
+        NodeParser.addCreator("if-nez", new NodeParser.SimpleInstructionCreator(
+                (objs) -> new IfNez((int) objs[0], (int) objs[1]),
+                Register, Identifier));
     }
 
     private final int A, B;

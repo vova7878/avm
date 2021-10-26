@@ -9,7 +9,9 @@ import com.v7878.avm.utils.DualBuffer;
 public class GetThis implements Instruction {
 
     static void init() {
-        NodeParser.addCreator("get-this", new NodeParser.SimpleInstructionCreator((objs) -> new GetThis((int) objs[0]), Register));
+        NodeParser.addCreator("get-this", new NodeParser.SimpleInstructionCreator(
+                (objs) -> new GetThis((int) objs[0]),
+                Register));
     }
 
     private final int A;

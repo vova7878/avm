@@ -9,7 +9,8 @@ public class Return implements Instruction {
     public static final Return INSTANCE = new Return();
 
     static void init() {
-        NodeParser.addCreator("return", new NodeParser.SimpleInstructionCreator((objs) -> INSTANCE));
+        NodeParser.addCreator("return", new NodeParser.SimpleInstructionCreator(
+                (objs) -> INSTANCE));
     }
 
     private Return() {

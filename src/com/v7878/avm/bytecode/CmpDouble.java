@@ -8,7 +8,9 @@ import com.v7878.avm.utils.DualBuffer;
 public class CmpDouble extends SimpleInstruction {
 
     static void init() {
-        NodeParser.addCreator("cmp-double", new NodeParser.SimpleInstructionCreator((objs) -> new CmpDouble((int) objs[0], (int) objs[1], (int) objs[2]), Register, Register, Register));
+        NodeParser.addCreator("cmp-double", new NodeParser.SimpleInstructionCreator(
+                (objs) -> new CmpDouble((int) objs[0], (int) objs[1], (int) objs[2]),
+                Register, Register, Register));
     }
 
     private final int A, B, C;

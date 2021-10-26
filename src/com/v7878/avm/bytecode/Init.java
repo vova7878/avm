@@ -181,6 +181,8 @@ public class Init {
             Int64ToDouble.init();
             Int128ToFloat.init();
             Int128ToDouble.init();
+            UInt32ToDouble.init();
+            UInt32ToFloat.init();
 
             Nop.init();
             Return.init();

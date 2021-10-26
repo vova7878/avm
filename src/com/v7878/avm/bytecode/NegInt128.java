@@ -9,7 +9,9 @@ import com.v7878.avm.utils.Wide;
 public class NegInt128 extends SimpleInstruction {
 
     static void init() {
-        NodeParser.addCreator("neg-int128", new NodeParser.SimpleInstructionCreator((objs) -> new NegInt128((int) objs[0], (int) objs[1]), Register, Register));
+        NodeParser.addCreator("neg-int128", new NodeParser.SimpleInstructionCreator(
+                (objs) -> new NegInt128((int) objs[0], (int) objs[1]),
+                Register, Register));
     }
 
     private final int A, B;

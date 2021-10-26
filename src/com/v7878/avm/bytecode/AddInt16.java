@@ -8,7 +8,9 @@ import com.v7878.avm.utils.DualBuffer;
 public class AddInt16 extends SimpleInstruction {
 
     static void init() {
-        NodeParser.addCreator("add-int16", new NodeParser.SimpleInstructionCreator((objs) -> new AddInt16((int) objs[0], (int) objs[1], (int) objs[2]), Register, Register, Register));
+        NodeParser.addCreator("add-int16", new NodeParser.SimpleInstructionCreator(
+                (objs) -> new AddInt16((int) objs[0], (int) objs[1], (int) objs[2]),
+                Register, Register, Register));
     }
 
     private final int A, B, C;

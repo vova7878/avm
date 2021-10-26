@@ -8,7 +8,9 @@ import com.v7878.avm.utils.DualBuffer;
 public class Int32ToDouble extends SimpleInstruction {
 
     static void init() {
-        NodeParser.addCreator("int32-to-double", new NodeParser.SimpleInstructionCreator((objs) -> new Int32ToDouble((int) objs[0], (int) objs[1]), Register, Register));
+        NodeParser.addCreator("int32-to-double", new NodeParser.SimpleInstructionCreator(
+                (objs) -> new Int32ToDouble((int) objs[0], (int) objs[1]),
+                Register, Register));
     }
 
     private final int A, B;

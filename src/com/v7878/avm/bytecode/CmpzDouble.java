@@ -9,7 +9,9 @@ import com.v7878.avm.utils.DualBuffer;
 public class CmpzDouble extends SimpleInstruction {
 
     static void init() {
-        NodeParser.addCreator("cmpz-double", new SimpleInstructionCreator((objs) -> new CmpzDouble((int) objs[0], (int) objs[1]), Register, Register));
+        NodeParser.addCreator("cmpz-double", new SimpleInstructionCreator(
+                (objs) -> new CmpzDouble((int) objs[0], (int) objs[1]),
+                Register, Register));
     }
 
     private final int A, B;

@@ -8,7 +8,9 @@ import com.v7878.avm.utils.DualBuffer;
 public class SubInt32 extends SimpleInstruction {
 
     static void init() {
-        NodeParser.addCreator("sub-int32", new NodeParser.SimpleInstructionCreator((objs) -> new SubInt32((int) objs[0], (int) objs[1], (int) objs[2]), Register, Register, Register));
+        NodeParser.addCreator("sub-int32", new NodeParser.SimpleInstructionCreator(
+                (objs) -> new SubInt32((int) objs[0], (int) objs[1], (int) objs[2]),
+                Register, Register, Register));
     }
 
     private final int A, B, C;

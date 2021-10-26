@@ -10,7 +10,9 @@ import com.v7878.avm.utils.DualBuffer;
 public class IfEqz implements Instruction {
 
     static void init() {
-        NodeParser.addCreator("if-eqz", new NodeParser.SimpleInstructionCreator((objs) -> new IfEqz((int) objs[0], (int) objs[1]), Register, Identifier));
+        NodeParser.addCreator("if-eqz", new NodeParser.SimpleInstructionCreator(
+                (objs) -> new IfEqz((int) objs[0], (int) objs[1]),
+                Register, Identifier));
     }
 
     private final int A, B;

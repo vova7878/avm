@@ -9,7 +9,9 @@ import com.v7878.avm.utils.Wide;
 public class ShrInt128 extends SimpleInstruction {
 
     static void init() {
-        NodeParser.addCreator("shr-int128", new NodeParser.SimpleInstructionCreator((objs) -> new ShrInt128((int) objs[0], (int) objs[1], (int) objs[2]), Register, Register, Register));
+        NodeParser.addCreator("shr-int128", new NodeParser.SimpleInstructionCreator(
+                (objs) -> new ShrInt128((int) objs[0], (int) objs[1], (int) objs[2]),
+                Register, Register, Register));
     }
 
     private final int A, B, C;

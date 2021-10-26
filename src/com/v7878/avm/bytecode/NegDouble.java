@@ -8,7 +8,9 @@ import com.v7878.avm.utils.DualBuffer;
 public class NegDouble extends SimpleInstruction {
 
     static void init() {
-        NodeParser.addCreator("neg-double", new NodeParser.SimpleInstructionCreator((objs) -> new NegDouble((int) objs[0], (int) objs[1]), Register, Register));
+        NodeParser.addCreator("neg-double", new NodeParser.SimpleInstructionCreator(
+                (objs) -> new NegDouble((int) objs[0], (int) objs[1]),
+                Register, Register));
     }
 
     private final int A, B;

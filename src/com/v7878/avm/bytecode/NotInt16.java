@@ -8,7 +8,9 @@ import com.v7878.avm.utils.DualBuffer;
 public class NotInt16 extends SimpleInstruction {
 
     static void init() {
-        NodeParser.addCreator("not-int16", new NodeParser.SimpleInstructionCreator((objs) -> new NotInt16((int) objs[0], (int) objs[1]), Register, Register));
+        NodeParser.addCreator("not-int16", new NodeParser.SimpleInstructionCreator(
+                (objs) -> new NotInt16((int) objs[0], (int) objs[1]),
+                Register, Register));
     }
 
     private final int A, B;

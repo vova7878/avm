@@ -9,7 +9,9 @@ import com.v7878.avm.utils.DualBuffer;
 public class Goto implements Instruction {
 
     static void init() {
-        NodeParser.addCreator("goto", new NodeParser.SimpleInstructionCreator((objs) -> new Goto((int) objs[0]), Identifier));
+        NodeParser.addCreator("goto", new NodeParser.SimpleInstructionCreator(
+                (objs) -> new Goto((int) objs[0]),
+                Identifier));
     }
 
     private final int A;

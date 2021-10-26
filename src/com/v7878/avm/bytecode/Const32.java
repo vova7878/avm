@@ -9,7 +9,9 @@ import com.v7878.avm.utils.DualBuffer;
 public class Const32 extends SimpleInstruction {
 
     static void init() {
-        NodeParser.addCreator("const32", new NodeParser.SimpleInstructionCreator((objs) -> new Const32((int) objs[0], (int) objs[1]), Register, Int32));
+        NodeParser.addCreator("const32", new NodeParser.SimpleInstructionCreator(
+                (objs) -> new Const32((int) objs[0], (int) objs[1]),
+                Register, Int32));
     }
 
     private final int A, B;

@@ -8,7 +8,9 @@ import com.v7878.avm.utils.DualBuffer;
 public class MulInt8 extends SimpleInstruction {
 
     static void init() {
-        NodeParser.addCreator("mul-int8", new NodeParser.SimpleInstructionCreator((objs) -> new MulInt8((int) objs[0], (int) objs[1], (int) objs[2]), Register, Register, Register));
+        NodeParser.addCreator("mul-int8", new NodeParser.SimpleInstructionCreator(
+                (objs) -> new MulInt8((int) objs[0], (int) objs[1], (int) objs[2]),
+                Register, Register, Register));
     }
 
     private final int A, B, C;

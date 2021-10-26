@@ -9,7 +9,9 @@ import com.v7878.avm.utils.DualBuffer;
 public class AddDouble extends SimpleInstruction {
 
     static void init() {
-        NodeParser.addCreator("add-double", new SimpleInstructionCreator((objs) -> new AddDouble((int) objs[0], (int) objs[1], (int) objs[2]), Register, Register, Register));
+        NodeParser.addCreator("add-double", new SimpleInstructionCreator(
+                (objs) -> new AddDouble((int) objs[0], (int) objs[1], (int) objs[2]),
+                Register, Register, Register));
     }
 
     private final int A, B, C;

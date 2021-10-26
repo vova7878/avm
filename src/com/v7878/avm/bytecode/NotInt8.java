@@ -8,7 +8,9 @@ import com.v7878.avm.utils.DualBuffer;
 public class NotInt8 extends SimpleInstruction {
 
     static void init() {
-        NodeParser.addCreator("not-int8", new NodeParser.SimpleInstructionCreator((objs) -> new NotInt8((int) objs[0], (int) objs[1]), Register, Register));
+        NodeParser.addCreator("not-int8", new NodeParser.SimpleInstructionCreator(
+                (objs) -> new NotInt8((int) objs[0], (int) objs[1]),
+                Register, Register));
     }
 
     private final int A, B;
