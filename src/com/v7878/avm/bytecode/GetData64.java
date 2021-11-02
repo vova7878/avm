@@ -12,7 +12,7 @@ public class GetData64 extends SimpleInstruction {
     static void init() {
         NodeParser.addCreator("get-data64", new NodeParser.SimpleInstructionCreator(
                 (objs) -> new GetData64((int) objs[0], (int) objs[1], (int) objs[2]),
-                Register, Register, SimpleUInt));
+                Register, Register, Register));
     }
 
     private final int A, B, C;
@@ -27,6 +27,6 @@ public class GetData64 extends SimpleInstruction {
     public void handle(DualBuffer data) {
         Machine m = Machine.get();
         Node node = m.getNode(data.getInt(B));
-        data.putLong(A, node.getData().getLong(C));
+        data.putLong(A, node.getData().getLong(data.getInt(C)));
     }
 }

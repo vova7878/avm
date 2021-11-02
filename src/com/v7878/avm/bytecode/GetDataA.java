@@ -12,7 +12,7 @@ public class GetDataA extends SimpleInstruction {
     static void init() {
         NodeParser.addCreator("get-dataA", new NodeParser.SimpleInstructionCreator(
                 (objs) -> new GetDataA((int) objs[0], (int) objs[1], (int) objs[2], (int) objs[3]),
-                Register, Register, SimpleUInt, SimpleUInt));
+                Register, Register, Register, SimpleUInt));
     }
 
     private final int A, B, C, D;
@@ -28,6 +28,6 @@ public class GetDataA extends SimpleInstruction {
     public void handle(DualBuffer data) {
         Machine m = Machine.get();
         Node node = m.getNode(data.getInt(B));
-        data.put(node.getData(), A, C, D);
+        data.put(node.getData(), A, data.getInt(C), D);
     }
 }

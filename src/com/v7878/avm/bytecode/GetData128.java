@@ -12,7 +12,7 @@ public class GetData128 extends SimpleInstruction {
     static void init() {
         NodeParser.addCreator("get-data128", new NodeParser.SimpleInstructionCreator(
                 (objs) -> new GetData128((int) objs[0], (int) objs[1], (int) objs[2]),
-                Register, Register, SimpleUInt));
+                Register, Register, Register));
     }
 
     private final int A, B, C;
@@ -27,6 +27,6 @@ public class GetData128 extends SimpleInstruction {
     public void handle(DualBuffer data) {
         Machine m = Machine.get();
         Node node = m.getNode(data.getInt(B));
-        data.putWide(A, DualBuffer.getWide(node.getData(), C));
+        data.putWide(A, DualBuffer.getWide(node.getData(), data.getInt(C)));
     }
 }
