@@ -3,12 +3,12 @@ package com.v7878.avm;
 public class Metadata {
 
     public final int index;
-    public final InvokeInfo invoke;
+    public final InvokeInfo iinfo;
     public volatile int flags;
 
-    public Metadata(int index, InvokeInfo invoke) {
+    public Metadata(int index, InvokeInfo iinfo) {
         this.index = index;
-        this.invoke = invoke;
+        this.iinfo = iinfo;
     }
 
     public static class InvokeInfo {
@@ -17,6 +17,7 @@ public class Metadata {
         public final int ins;
         public final int outs;
         public final NodeHandler h;
+        public volatile int invokationCount;
 
         public InvokeInfo(int regs, int ins, int outs, NodeHandler h) {
             this.regs = regs;

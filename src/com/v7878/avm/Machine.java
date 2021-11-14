@@ -2,6 +2,7 @@ package com.v7878.avm;
 
 import static com.v7878.avm.Constants.NODE_DELETED;
 import static com.v7878.avm.Constants.NODE_INDELIBLE;
+import static com.v7878.avm.Constants.NODE_INVOKED;
 import static com.v7878.avm.Constants.NODE_NAMED;
 import com.v7878.avm.Metadata.InvokeInfo;
 import com.v7878.avm.bytecode.Instruction;
@@ -18,6 +19,7 @@ public class Machine {
 
     private static NodeCreator creator;
     private static NodeInvoker invoker;
+    private static NodeInvokationCounter icounter;
     private static NodeFlags flags;
     private static Machine vm;
 
@@ -25,9 +27,10 @@ public class Machine {
         Node.init();
     }
 
-    static void init(NodeCreator creator, NodeInvoker invoker, NodeFlags flags) {
+    static void init(NodeCreator creator, NodeInvoker invoker, NodeInvokationCounter icounter, NodeFlags flags) {
         Machine.creator = creator;
         Machine.invoker = invoker;
+        Machine.icounter = icounter;
         Machine.flags = flags;
     }
 
@@ -113,7 +116,7 @@ public class Machine {
     }
 
     static ByteBuffer allocate(int size) {
-        return Node.setOrder(ByteBuffer.allocate(size));
+        return Node.fixOrder(ByteBuffer.allocate(size));
     }
 
     public ByteBuffer invoke(Node node, ByteBuffer in) {
@@ -121,8 +124,16 @@ public class Machine {
             if (node.withFlags(NODE_DELETED)) {
                 throw new IllegalStateException("node deleted");
             }
-            return invoker.invoke(node, in);
+            flags.put(node, node.getFlags() | NODE_INVOKED);
+            icounter.count(node, true);
         }
+        ByteBuffer out = invoker.invoke(node, in);
+        synchronized (node) {
+            if (icounter.count(node, false) == 0) {
+                flags.put(node, node.getFlags() & ~NODE_INVOKED);
+            }
+        }
+        return out;
     }
 
     public Node getNode(int index) {
@@ -158,7 +169,7 @@ public class Machine {
 
     public Node deleteNode(Node node) {
         synchronized (node) {
-            if (node.withFlags(NODE_DELETED | NODE_INDELIBLE | NODE_NAMED)) {
+            if (node.withFlags(NODE_DELETED | NODE_INDELIBLE | NODE_INVOKED | NODE_NAMED)) {
                 throw new IllegalStateException("can not delete node");
             }
             Node out = deleteNode(node.getIndex());
@@ -192,6 +203,12 @@ public class Machine {
     interface NodeFlags {
 
         void put(Node node, int flags);
+    }
+
+    @FunctionalInterface
+    interface NodeInvokationCounter {
+
+        int count(Node node, boolean add);
     }
 
     @FunctionalInterface
