@@ -7,17 +7,17 @@ import static com.v7878.avm.NodeParser.ParamType.Register;
 import static com.v7878.avm.NodeParser.ParamType.SimpleUInt;
 import com.v7878.avm.utils.DualBuffer;
 
-public class GetDataA extends DataInstruction {
+public class PutDataA extends DataInstruction {
 
     static void init() {
-        NodeParser.addCreator("get-dataA", new NodeParser.SimpleInstructionCreator(
-                (objs) -> new GetDataA((int) objs[0], (int) objs[1], (int) objs[2], (int) objs[3]),
+        NodeParser.addCreator("put-dataA", new NodeParser.SimpleInstructionCreator(
+                (objs) -> new PutDataA((int) objs[0], (int) objs[1], (int) objs[2], (int) objs[3]),
                 Register, Register, Register, SimpleUInt));
     }
 
     private final int A, B, C, D;
 
-    public GetDataA(int A, int B, int C, int D) {
+    public PutDataA(int A, int B, int C, int D) {
         this.A = A;
         this.B = B;
         this.C = C;
@@ -28,7 +28,7 @@ public class GetDataA extends DataInstruction {
     public void handle(Node thiz, DualBuffer data) {
         Machine m = Machine.get();
         Node node = m.getNode(data.getInt(B));
-        Utils.checkPrivate(thiz, node);
-        data.put(node.getData(), A, data.getInt(C), D);
+        Utils.checkProtected(thiz, node);
+        data.putToBuffer(node.getData(), A, data.getInt(C), D);
     }
 }

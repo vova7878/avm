@@ -13,7 +13,7 @@ public class Node {
     static void init() {
         Machine.init(Node::new,
                 Node::invoke,
-                (node, add) -> node.info.iinfo.invokationCount += add ? 1 : -1,
+                (node, add) -> node.info.iinfo.invocationCount += add ? 1 : -1,
                 (node, flags) -> node.info.flags = flags);
     }
 

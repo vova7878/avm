@@ -6,17 +6,17 @@ import com.v7878.avm.NodeParser;
 import static com.v7878.avm.NodeParser.ParamType.Register;
 import com.v7878.avm.utils.DualBuffer;
 
-public class GetData128 extends DataInstruction {
+public class PutData8 extends DataInstruction {
 
     static void init() {
-        NodeParser.addCreator("get-data128", new NodeParser.SimpleInstructionCreator(
-                (objs) -> new GetData128((int) objs[0], (int) objs[1], (int) objs[2]),
+        NodeParser.addCreator("put-data8", new NodeParser.SimpleInstructionCreator(
+                (objs) -> new PutData8((int) objs[0], (int) objs[1], (int) objs[2]),
                 Register, Register, Register));
     }
 
     private final int A, B, C;
 
-    public GetData128(int A, int B, int C) {
+    public PutData8(int A, int B, int C) {
         this.A = A;
         this.B = B;
         this.C = C;
@@ -26,7 +26,7 @@ public class GetData128 extends DataInstruction {
     public void handle(Node thiz, DualBuffer data) {
         Machine m = Machine.get();
         Node node = m.getNode(data.getInt(B));
-        Utils.checkPrivate(thiz, node);
-        data.putWide(A, DualBuffer.getWide(node.getData(), data.getInt(C)));
+        Utils.checkProtected(thiz, node);
+        node.getData().put(data.getInt(C), data.get(A));
     }
 }

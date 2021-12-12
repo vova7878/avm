@@ -4,6 +4,8 @@ import static com.v7878.avm.Constants.NODE_DELETED;
 import static com.v7878.avm.Constants.NODE_INDELIBLE;
 import static com.v7878.avm.Constants.NODE_INVOKED;
 import static com.v7878.avm.Constants.NODE_NAMED;
+import static com.v7878.avm.Constants.NODE_PRIVATE;
+import static com.v7878.avm.Constants.NODE_PROTECTED;
 import com.v7878.avm.Metadata.InvokeInfo;
 import com.v7878.avm.bytecode.Instruction;
 import com.v7878.avm.bytecode.Interpreter;
@@ -19,15 +21,16 @@ public class Machine {
 
     private static NodeCreator creator;
     private static NodeInvoker invoker;
-    private static NodeInvokationCounter icounter;
+    private static NodeInvocationCounter icounter;
     private static NodeFlags flags;
     private static Machine vm;
+    private static final int ALLOWED_FLAGS = NODE_PRIVATE | NODE_PROTECTED | NODE_INDELIBLE;
 
     static {
         Node.init();
     }
 
-    static void init(NodeCreator creator, NodeInvoker invoker, NodeInvokationCounter icounter, NodeFlags flags) {
+    static void init(NodeCreator creator, NodeInvoker invoker, NodeInvocationCounter icounter, NodeFlags flags) {
         Machine.creator = creator;
         Machine.invoker = invoker;
         Machine.icounter = icounter;
@@ -47,18 +50,29 @@ public class Machine {
     private Machine() {
     }
 
-    public Node newNode(int regs) {
+    public Node newNode(int flags, int regs) {
+        checkFlags(flags);
         if (regs < 0) {
             throw new IllegalArgumentException();
         }
-        return creator.create(allocate(regs), (node) -> new Metadata(putNode(node), null));
+        return creator.create(allocate(regs), (node)
+                -> new Metadata(putNode(node), null, flags));
+    }
+
+    public Node newNode(int regs) {
+        return newNode(0, regs);
     }
 
     public Node newNode(ByteBuffer data) {
-        return newNode(data, true);
+        return newNode(0, data);
     }
 
-    Node newNode(ByteBuffer in, boolean clone) {
+    public Node newNode(int flags, ByteBuffer data) {
+        return newNode(flags, data, true);
+    }
+
+    Node newNode(int flags, ByteBuffer in, boolean clone) {
+        checkFlags(flags);
         if (in == null) {
             throw new NullPointerException();
         }
@@ -69,17 +83,34 @@ public class Machine {
         } else {
             data = in;
         }
-        return creator.create(data, (node) -> new Metadata(putNode(node), null));
+        return creator.create(data, (node)
+                -> new Metadata(putNode(node), null, flags));
     }
 
     public Node newNode(NodeHandler h, int ins, int outs) {
+        return newNode(0, h, ins, outs);
+    }
+
+    public Node newNode(int flags, NodeHandler h,
+            int ins, int outs) {
+        checkFlags(flags);
         if (outs < 0 || ins < 0 || (ins + outs < 0)) {
             throw new IllegalArgumentException();
         }
-        return creator.create(allocate(0), (node) -> new Metadata(putNode(node), new InvokeInfo(ins + outs, ins, outs, h)));
+        return creator.create(allocate(0), (node)
+                -> new Metadata(putNode(node),
+                        new InvokeInfo(ins + outs, ins, outs, h),
+                        flags));
     }
 
-    public Node newNode(Instruction[] instrs, int vregs, int ins, int outs) {
+    public Node newNode(Instruction[] instrs,
+            int vregs, int ins, int outs) {
+        return newNode(0, instrs, vregs, ins, outs);
+    }
+
+    public Node newNode(int flags, Instruction[] instrs,
+            int vregs, int ins, int outs) {
+        checkFlags(flags);
         if (outs < 0 || ins < 0 || (ins + outs < 0)) {
             throw new IllegalArgumentException();
         }
@@ -87,14 +118,23 @@ public class Machine {
             throw new IllegalArgumentException();
         }
         return creator.create(allocate(0), (node) -> new Metadata(putNode(node),
-                new InvokeInfo(vregs, ins, outs, new Interpreter(instrs))));
+                new InvokeInfo(vregs, ins, outs, new Interpreter(instrs)),
+                flags));
     }
 
-    public Node newNode(ByteBuffer in, Instruction[] instrs, int vregs, int ins, int outs) {
-        return newNode(in, true, instrs, vregs, ins, outs);
+    public Node newNode(ByteBuffer in, Instruction[] instrs,
+            int vregs, int ins, int outs) {
+        return newNode(0, in, instrs, vregs, ins, outs);
     }
 
-    Node newNode(ByteBuffer in, boolean clone, Instruction[] instrs, int vregs, int ins, int outs) {
+    public Node newNode(int flags, ByteBuffer in, Instruction[] instrs,
+            int vregs, int ins, int outs) {
+        return newNode(flags, in, true, instrs, vregs, ins, outs);
+    }
+
+    Node newNode(int flags, ByteBuffer in, boolean clone, Instruction[] instrs,
+            int vregs, int ins, int outs) {
+        checkFlags(flags);
         if (in == null) {
             throw new NullPointerException();
         }
@@ -112,7 +152,8 @@ public class Machine {
             data = in;
         }
         return creator.create(data, (node) -> new Metadata(putNode(node),
-                new InvokeInfo(vregs, ins, outs, new Interpreter(instrs))));
+                new InvokeInfo(vregs, ins, outs, new Interpreter(instrs)),
+                flags));
     }
 
     static ByteBuffer allocate(int size) {
@@ -187,6 +228,12 @@ public class Machine {
         }
     }
 
+    private void checkFlags(int flags) {
+        if ((flags & ~ALLOWED_FLAGS) != 0) {
+            throw new IllegalArgumentException("Invalid flags");
+        }
+    }
+
     @FunctionalInterface
     interface MetadataCreator {
 
@@ -206,7 +253,7 @@ public class Machine {
     }
 
     @FunctionalInterface
-    interface NodeInvokationCounter {
+    interface NodeInvocationCounter {
 
         int count(Node node, boolean add);
     }

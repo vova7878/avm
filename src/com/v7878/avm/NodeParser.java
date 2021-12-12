@@ -1,5 +1,7 @@
 package com.v7878.avm;
 
+import static com.v7878.avm.Constants.NODE_PRIVATE;
+import static com.v7878.avm.Constants.NODE_PROTECTED;
 import com.v7878.avm.bytecode.Init;
 import com.v7878.avm.bytecode.Instruction;
 import com.v7878.avm.utils.DualBuffer;
@@ -33,7 +35,8 @@ public class NodeParser {
     public static final String REGISTER = "[dDvVpPrR]" + SIMPLE_UINT;
     public static final String IDENTIFIER = ":\\w+";
     public static final String INSTRUCTION_NAME = "\\w(-?\\w+)*";
-    //public static final String INSTRUCTION_PARAMETER = "(?<value>" + STRING + "|" + ALL_INT + "|" + REGISTER + "|" + IDENTIFIER + ")";
+    public static final String MODIFIER_PRIVATE = "private"; // call only
+    public static final String MODIFIER_PROTECTED = "protected"; //read and call only
 
     private static final Map<String, InstructionCreator> icreator = new HashMap<>();
 
@@ -91,20 +94,32 @@ public class NodeParser {
     }
 
     private static Node parseNode(Token[] tokens) {
-        String name = tokens[0].data;
+        int i = 0;
+        int flags = 0;
+        switch (tokens[i].data) {
+            case MODIFIER_PRIVATE:
+                i++;
+                flags |= NODE_PRIVATE | NODE_PROTECTED;
+                break;
+            case MODIFIER_PROTECTED:
+                i++;
+                flags |= NODE_PROTECTED;
+                break;
+        }
+        String name = tokens[i++].data;
         if (!name.matches(STRING)) {
-            throw new IllegalStateException("unknown token at position: " + tokens[0].start);
+            throw new IllegalStateException("unknown token at position: " + tokens[i - 1].start);
         }
         name = (String) ParamType.String.parse(name);
-        int i = 1;
         if (i == tokens.length) {
-            return Machine.get().newNode(0);
+            return Machine.get().newNode(flags, 0);
         }
         ByteBuffer data = null;
         Node out = null;
         ret:
         {
             if (tokens[i].data.equals(".data")) {
+                int start = i;
                 boolean end = false;
                 for (; i < tokens.length; i++) {
                     if (tokens[i].data.equals(".enddata")) {
@@ -115,10 +130,10 @@ public class NodeParser {
                 if (!end) {
                     throw new IllegalStateException("unclosed data block");
                 }
-                data = parseData(Arrays.copyOfRange(tokens, 2, i));
+                data = parseData(Arrays.copyOfRange(tokens, start + 1, i));
                 i++;
                 if (i == tokens.length) {
-                    out = Machine.get().newNode(data, false);
+                    out = Machine.get().newNode(flags, data, false);
                     break ret;
                 }
             }
@@ -132,10 +147,10 @@ public class NodeParser {
             Instruction[] instrs = (Instruction[]) code[0];
             int vregs = (int) code[1], ins = (int) code[2], outs = (int) code[3];
             if (data == null) {
-                out = Machine.get().newNode(instrs, vregs, ins, outs);
+                out = Machine.get().newNode(flags, instrs, vregs, ins, outs);
                 break ret;
             }
-            out = Machine.get().newNode(data, false, instrs, vregs, ins, outs);
+            out = Machine.get().newNode(flags, data, false, instrs, vregs, ins, outs);
             break ret;
         }
         Machine.get().setNodeName(out, name);
@@ -143,9 +158,10 @@ public class NodeParser {
     }
 
     private static ByteBuffer parseData(Token[] tokens) {
-        int size = (int) ParamType.SimpleUInt.parse(tokens[0].data);
+        int i = 0;
+        int size = (int) ParamType.SimpleUInt.parse(tokens[i++].data);
         ByteBuffer out = Machine.allocate(size);
-        for (int i = 1; i < tokens.length; i++) {
+        for (; i < tokens.length; i++) {
             String data = tokens[i].data;
             if (data.matches(ALL_INT_NO_POSTFIX)) {
                 out.putInt((int) ParamType.Int32.parse(data));

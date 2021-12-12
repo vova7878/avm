@@ -161,4 +161,12 @@ public class DualBuffer {
             NewApiUtils.put(v, index, src, offset, length);
         }
     }
+
+    public void putToBuffer(ByteBuffer dst, int index, int offset, int length) {
+        if (index < 0) {
+            NewApiUtils.put(dst, offset, d, -index - 1, length);
+        } else {
+            NewApiUtils.put(dst, offset, v, index, length);
+        }
+    }
 }

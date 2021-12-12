@@ -4,10 +4,9 @@ import com.v7878.avm.Machine;
 import com.v7878.avm.Node;
 import com.v7878.avm.NodeParser;
 import static com.v7878.avm.NodeParser.ParamType.Register;
-import static com.v7878.avm.NodeParser.ParamType.SimpleUInt;
 import com.v7878.avm.utils.DualBuffer;
 
-public class GetData32 extends SimpleInstruction {
+public class GetData32 extends DataInstruction {
 
     static void init() {
         NodeParser.addCreator("get-data32", new NodeParser.SimpleInstructionCreator(
@@ -24,9 +23,10 @@ public class GetData32 extends SimpleInstruction {
     }
 
     @Override
-    public void handle(DualBuffer data) {
+    public void handle(Node thiz, DualBuffer data) {
         Machine m = Machine.get();
         Node node = m.getNode(data.getInt(B));
+        Utils.checkPrivate(thiz, node);
         data.putInt(A, node.getData().getInt(data.getInt(C)));
     }
 }

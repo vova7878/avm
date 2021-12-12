@@ -6,9 +6,10 @@ public class Metadata {
     public final InvokeInfo iinfo;
     public volatile int flags;
 
-    public Metadata(int index, InvokeInfo iinfo) {
+    public Metadata(int index, InvokeInfo iinfo, int flags) {
         this.index = index;
         this.iinfo = iinfo;
+        this.flags = flags;
     }
 
     public static class InvokeInfo {
@@ -17,7 +18,7 @@ public class Metadata {
         public final int ins;
         public final int outs;
         public final NodeHandler h;
-        public volatile int invokationCount;
+        public volatile int invocationCount;
 
         public InvokeInfo(int regs, int ins, int outs, NodeHandler h) {
             this.regs = regs;

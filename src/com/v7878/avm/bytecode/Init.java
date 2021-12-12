@@ -88,6 +88,13 @@ public class Init {
             GetData128.init();
             GetDataA.init();
 
+            PutData8.init();
+            PutData16.init();
+            PutData32.init();
+            PutData64.init();
+            PutData128.init();
+            PutDataA.init();
+
             MulDouble.init();
             MulFloat.init();
             MulInt8.init();
