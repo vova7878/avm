@@ -188,7 +188,7 @@ public class Machine {
                 throw new IllegalStateException("can not set node name");
             }
             if (NewApiUtils.putIfAbsent(names, name, node) != null) {
-                throw new IllegalStateException("name is already in use");
+                throw new IllegalStateException("name \"" + name + "\" is already in use");
             }
             flags.put(node, node.getFlags() | NODE_NAMED);
         }

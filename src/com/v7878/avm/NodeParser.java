@@ -4,11 +4,13 @@ import static com.v7878.avm.Constants.NODE_PRIVATE;
 import static com.v7878.avm.Constants.NODE_PROTECTED;
 import com.v7878.avm.bytecode.Init;
 import com.v7878.avm.bytecode.Instruction;
+import com.v7878.avm.exceptions.ParseException;
+import com.v7878.avm.exceptions.ParseTokenException;
 import com.v7878.avm.utils.DualBuffer;
 import com.v7878.avm.utils.NewApiUtils;
 import com.v7878.avm.utils.Pair;
 import com.v7878.avm.utils.Tokenizer;
-import com.v7878.avm.utils.Tokenizer.Token;
+import com.v7878.avm.utils.Token;
 import com.v7878.avm.utils.Wide;
 
 import java.nio.ByteBuffer;
@@ -53,38 +55,44 @@ public class NodeParser {
         }
     }
 
-    public static Node[] parseNodes(String data) {
+    public static Node[] parseNodes(String data) throws ParseException {
         Token[] tokens = new Tokenizer(data).parseTokens();
         List<Token[]> nodes = new ArrayList<>();
-        int start = -1;
+        int start = -1, end = -1;
         for (int i = 0; i < tokens.length; i++) {
             switch (tokens[i].data) {
                 case ".node":
                     if (start == -1) {
                         start = i;
                     } else {
-                        throw new IllegalStateException();
+                        //TODO message
+                        throw new ParseTokenException(tokens[i]);
                     }
                     break;
                 case ".endnode":
                     if (start != -1) {
-                        Token[] node = new Token[i - start - 1];
-                        System.arraycopy(tokens, start + 1, node, 0, node.length);
+                        Token[] node = new Token[i - start];
+                        System.arraycopy(tokens, start, node, 0, node.length);
                         nodes.add(node);
                         start = -1;
+                        end = i;
                     } else {
-                        throw new IllegalStateException();
+                        //TODO message
+                        throw new ParseTokenException(tokens[i]);
                     }
                     break;
                 default:
                     if (i == 0) {
-                        throw new IllegalStateException();
+                        throw new ParseTokenException(tokens[i]);
                     }
                     break;
             }
         }
         if (start != -1) {
-            throw new IllegalStateException("unclosed node block");
+            throw new ParseTokenException(tokens[start], "unclosed node block ");
+        }
+        if (end != tokens.length - 1) {
+            throw new ParseTokenException(tokens[end + 1]);
         }
         Node[] out = new Node[nodes.size()];
         for (int i = 0; i < out.length; i++) {
@@ -93,8 +101,14 @@ public class NodeParser {
         return out;
     }
 
-    private static Node parseNode(Token[] tokens) {
-        int i = 0;
+    private static Node parseNode(Token[] tokens) throws ParseException {
+        if (tokens.length == 0) {
+            throw new IllegalArgumentException();
+        }
+        if (tokens.length == 1) {
+            throw new ParseTokenException(tokens[0], "not contains name ");
+        }
+        int i = 1;
         int flags = 0;
         switch (tokens[i].data) {
             case MODIFIER_PRIVATE:
@@ -106,11 +120,14 @@ public class NodeParser {
                 flags |= NODE_PROTECTED;
                 break;
         }
-        String name = tokens[i++].data;
-        if (!name.matches(STRING)) {
-            throw new IllegalStateException("unknown token at position: " + tokens[i - 1].start);
+        if (i == tokens.length) {
+            throw new ParseTokenException(tokens[0], "not contains name ");
         }
-        name = (String) ParamType.String.parse(name);
+        if (!tokens[i].data.matches(STRING)) {
+            throw new ParseTokenException(tokens[i], "not a string ");
+        }
+        String name = (String) ParamType.String.parse(tokens[i]);
+        i++;
         if (i == tokens.length) {
             return Machine.get().newNode(flags, 0);
         }
@@ -128,7 +145,7 @@ public class NodeParser {
                     }
                 }
                 if (!end) {
-                    throw new IllegalStateException("unclosed data block");
+                    throw new ParseTokenException(tokens[start], "unclosed data block ");
                 }
                 data = parseData(Arrays.copyOfRange(tokens, start + 1, i));
                 i++;
@@ -137,103 +154,128 @@ public class NodeParser {
                     break ret;
                 }
             }
-            if (!tokens[i].data.equals(".code")) {
-                throw new IllegalStateException("unknown token at position: " + tokens[i].start);
-            }
-            if (!tokens[tokens.length - 1].data.equals(".endcode")) {
-                throw new IllegalStateException("unknown token at position: " + tokens[tokens.length - 1].start);
-            }
-            Object[] code = parseCode(Arrays.copyOfRange(tokens, i + 1, tokens.length - 1));
-            Instruction[] instrs = (Instruction[]) code[0];
-            int vregs = (int) code[1], ins = (int) code[2], outs = (int) code[3];
-            if (data == null) {
-                out = Machine.get().newNode(flags, instrs, vregs, ins, outs);
+            if (tokens[i].data.equals(".code")) {
+                int start = i;
+                int end = -1;
+                for (; i < tokens.length; i++) {
+                    if (tokens[i].data.equals(".endcode")) {
+                        end = i;
+                        break;
+                    }
+                }
+                if (end == -1) {
+                    throw new ParseTokenException(tokens[start], "unclosed code block ");
+                }
+                if (end != tokens.length - 1) {
+                    throw new ParseTokenException(tokens[end + 1]);
+                }
+                Object[] code = parseCode(Arrays.copyOfRange(tokens, start, end));
+                Instruction[] instrs = (Instruction[]) code[0];
+                int vregs = (int) code[1], ins = (int) code[2], outs = (int) code[3];
+                if (data == null) {
+                    out = Machine.get().newNode(flags, instrs, vregs, ins, outs);
+                    break ret;
+                }
+                out = Machine.get().newNode(flags, data, false, instrs, vregs, ins, outs);
                 break ret;
+            } else {
+                throw new ParseTokenException(tokens[i]);
             }
-            out = Machine.get().newNode(flags, data, false, instrs, vregs, ins, outs);
-            break ret;
         }
         Machine.get().setNodeName(out, name);
         return out;
     }
 
-    private static ByteBuffer parseData(Token[] tokens) {
+    private static ByteBuffer parseData(Token[] tokens) throws ParseException {
+        //TODO size check
         int i = 0;
-        int size = (int) ParamType.SimpleUInt.parse(tokens[i++].data);
+        int size = (int) ParamType.SimpleUInt.parse(tokens[i++]);
         ByteBuffer out = Machine.allocate(size);
         for (; i < tokens.length; i++) {
             String data = tokens[i].data;
             if (data.matches(ALL_INT_NO_POSTFIX)) {
-                out.putInt((int) ParamType.Int32.parse(data));
+                out.putInt((int) ParamType.Int32.parse(tokens[i]));
             } else if (data.matches(ALL_INT_WITH_POSTFIX)) {
                 switch (data.charAt(data.length() - 1)) {
                     case 'Z':
                     case 'z':
-                        out.put((byte) ParamType.Int8.parse(data));
+                        out.put((byte) ParamType.Int8.parse(tokens[i]));
                         break;
                     case 'S':
                     case 's':
-                        out.putShort((short) ParamType.Int16.parse(data));
+                        out.putShort((short) ParamType.Int16.parse(tokens[i]));
                         break;
                     case 'L':
                     case 'l':
-                        out.putLong((long) ParamType.Int64.parse(data));
+                        out.putLong((long) ParamType.Int64.parse(tokens[i]));
                         break;
                     case 'W':
                     case 'w':
-                        DualBuffer.putWide(out, (Wide) ParamType.Int128.parse(data));
+                        DualBuffer.putWide(out, (Wide) ParamType.Int128.parse(tokens[i]));
                     default:
-                        throw new IllegalStateException();
+                        throw new ParseException();
                 }
             } else {
-                throw new IllegalStateException("unknown token at position: " + tokens[i].start);
+                throw new ParseTokenException(tokens[i], "unknown data type ");
             }
         }
         return out;
     }
 
-    private static Object[] parseCode(Token[] tokens) {
+    private static Object[] parseCode(Token[] tokens) throws ParseException {
+        if (tokens.length == 0) {
+            throw new IllegalArgumentException();
+        }
+        if (tokens.length < 4) {
+            throw new ParseTokenException(tokens[0], "not contains all params ");
+        }
+        int i = 1;
         Object[] out = new Object[4];
-        int vregs = (int) (out[1] = ParamType.SimpleUInt.parse(tokens[0].data));
-        int ins = (int) (out[2] = ParamType.SimpleUInt.parse(tokens[1].data));
-        int outs = (int) (out[3] = ParamType.SimpleUInt.parse(tokens[2].data));
-        List<Pair<InstructionCreator, String[]>> instrs = new ArrayList<>();
+        int vregs = (int) (out[1] = ParamType.SimpleUInt.parse(tokens[i++]));
+        int ins = (int) (out[2] = ParamType.SimpleUInt.parse(tokens[i++]));
+        int outs = (int) (out[3] = ParamType.SimpleUInt.parse(tokens[i++]));
+        List<Pair<InstructionCreator, Token[]>> creators = new ArrayList<>();
         Map<String, Integer> indentifiers = new HashMap<>();
-        for (int i = 3, t = 0; i < tokens.length; t++) {
+        for (int t = 0; i < tokens.length; t++) {
             if (tokens[i].data.matches(IDENTIFIER)) {
                 indentifiers.put(tokens[i].data, t);
                 i++;
             }
             String iname = tokens[i].data;
             if (!iname.matches(INSTRUCTION_NAME)) {
-                throw new IllegalStateException("unknown token at position: " + tokens[i].start);
+                throw new ParseTokenException(tokens[i], "not an instruction name ");
             }
-            i++;
             InstructionCreator ict = icreator.get(iname);
             if (ict == null) {
-                throw new IllegalStateException("unknown instruction: " + iname);
+                throw new ParseTokenException(tokens[i], "unknown instruction ");
             }
-            String[] iparams = new String[ict.getParamsCount()];
+            Token[] iparams = new Token[ict.getParamsCount()];
+            if (tokens.length - i <= iparams.length) {
+                throw new ParseTokenException(tokens[i], "not contains all params ");
+            }
+            i++;
+            //TODO copy
             for (int g = 0; g < iparams.length; g++, i++) {
-                iparams[g] = tokens[i].data;
+                iparams[g] = tokens[i];
             }
-            instrs.add(new Pair<>(ict, iparams));
+            creators.add(new Pair<>(ict, iparams));
         }
-        Instruction[] ii = new Instruction[instrs.size()];
-        for (int i = 0; i < ii.length; i++) {
-            Pair<InstructionCreator, String[]> data = instrs.get(i);
-            ii[i] = data.a.getInstruction(data.b, vregs, ins, outs, i, indentifiers);
+        Instruction[] instructions = new Instruction[creators.size()];
+        for (i = 0; i < instructions.length; i++) {
+            Pair<InstructionCreator, Token[]> creator = creators.get(i);
+            instructions[i] = creator.a.getInstruction(creator.b, vregs, ins, outs, i, indentifiers);
         }
-        out[0] = ii;
+        out[0] = instructions;
         return out;
     }
 
     public enum ParamType {
         Register() {
             @Override
-            public Integer parse(String iparam, Object... params2) {
+            public Integer parse(Token token, Object... params2) throws ParseTokenException {
+                String iparam = token.data;
                 if (!iparam.matches(REGISTER)) {
-                    throw new IllegalArgumentException();
+                    throw new ParseTokenException(token, "not a register ");
                 }
                 int vregs = (int) params2[0], ins = (int) params2[1], outs = (int) params2[2];
                 iparam = iparam.toLowerCase();
@@ -249,7 +291,7 @@ public class NodeParser {
                     case 'd':
                         return -reg - 1;
                     default:
-                        throw new IllegalStateException("unknown register type");
+                        throw new ParseTokenException(token, "unknown register type ");
                 }
             }
 
@@ -259,9 +301,10 @@ public class NodeParser {
             }
         }, Identifier() {
             @Override
-            public Integer parse(String iparam, Object... params2) {
+            public Integer parse(Token token, Object... params2) throws ParseTokenException {
+                String iparam = token.data;
                 if (!iparam.matches(IDENTIFIER)) {
-                    throw new IllegalArgumentException();
+                    throw new ParseTokenException(token, "not an identifier ");
                 }
                 @SuppressWarnings("unchecked")
                 HashMap<String, Integer> lines = (HashMap<String, Integer>) params2[0];
@@ -275,9 +318,10 @@ public class NodeParser {
             }
         }, SimpleUInt() {
             @Override
-            public Integer parse(String iparam, Object... params2) {
+            public Integer parse(Token token, Object... params2) throws ParseTokenException {
+                String iparam = token.data;
                 if (!iparam.matches(SIMPLE_UINT)) {
-                    throw new IllegalArgumentException();
+                    throw new ParseTokenException(token, "not a simple uint ");
                 }
                 return Integer.parseInt(iparam);
             }
@@ -288,7 +332,8 @@ public class NodeParser {
             }
         }, Int8() {
             @Override
-            public Byte parse(String iparam, Object... params2) {
+            public Byte parse(Token token, Object... params2) throws ParseTokenException {
+                String iparam = token.data;
                 boolean negative = iparam.charAt(0) == '-';
                 if (negative) {
                     iparam = iparam.substring(1);
@@ -307,7 +352,7 @@ public class NodeParser {
                     iparam = iparam.substring(1, iparam.length() - 1);
                     m = 8;
                 } else {
-                    throw new IllegalArgumentException();
+                    throw new ParseTokenException(token, "not an int8 ");
                 }
                 iparam = iparam.toLowerCase();
                 for (int i = 0; i < iparam.length(); i++) {
@@ -326,7 +371,8 @@ public class NodeParser {
             }
         }, Int16() {
             @Override
-            public Short parse(String iparam, Object... params2) {
+            public Short parse(Token token, Object... params2) throws ParseTokenException {
+                String iparam = token.data;
                 boolean negative = iparam.charAt(0) == '-';
                 if (negative) {
                     iparam = iparam.substring(1);
@@ -345,7 +391,7 @@ public class NodeParser {
                     iparam = iparam.substring(1, iparam.length() - 1);
                     m = 8;
                 } else {
-                    throw new IllegalArgumentException();
+                    throw new ParseTokenException(token, "not an int16 ");
                 }
                 iparam = iparam.toLowerCase();
                 for (int i = 0; i < iparam.length(); i++) {
@@ -364,7 +410,8 @@ public class NodeParser {
             }
         }, Int32() {
             @Override
-            public Integer parse(String iparam, Object... params2) {
+            public Integer parse(Token token, Object... params2) throws ParseTokenException {
+                String iparam = token.data;
                 boolean negative = iparam.charAt(0) == '-';
                 if (negative) {
                     iparam = iparam.substring(1);
@@ -382,7 +429,7 @@ public class NodeParser {
                     iparam = iparam.substring(1);
                     m = 8;
                 } else {
-                    throw new IllegalArgumentException();
+                    throw new ParseTokenException(token, "not an int32 ");
                 }
                 iparam = iparam.toLowerCase();
                 for (int i = 0; i < iparam.length(); i++) {
@@ -398,7 +445,8 @@ public class NodeParser {
             }
         }, Int64() {
             @Override
-            public Long parse(String iparam, Object... params2) {
+            public Long parse(Token token, Object... params2) throws ParseTokenException {
+                String iparam = token.data;
                 boolean negative = iparam.charAt(0) == '-';
                 if (negative) {
                     iparam = iparam.substring(1);
@@ -417,7 +465,7 @@ public class NodeParser {
                     iparam = iparam.substring(1, iparam.length() - 1);
                     m = 8;
                 } else {
-                    throw new IllegalArgumentException();
+                    throw new ParseTokenException(token, "not an int64 ");
                 }
                 iparam = iparam.toLowerCase();
                 for (int i = 0; i < iparam.length(); i++) {
@@ -433,7 +481,8 @@ public class NodeParser {
             }
         }, Int128() {
             @Override
-            public Wide parse(String iparam, Object... params2) {
+            public Wide parse(Token token, Object... params2) throws ParseTokenException {
+                String iparam = token.data;
                 boolean negative = iparam.charAt(0) == '-';
                 if (negative) {
                     iparam = iparam.substring(1);
@@ -452,7 +501,7 @@ public class NodeParser {
                     iparam = iparam.substring(1, iparam.length() - 1);
                     m = Wide.valueOf(8);
                 } else {
-                    throw new IllegalArgumentException();
+                    throw new ParseTokenException(token, "not an int128 ");
                 }
                 iparam = iparam.toLowerCase();
                 for (int i = 0; i < iparam.length(); i++) {
@@ -468,9 +517,10 @@ public class NodeParser {
             }
         }, String() {
             @Override
-            public String parse(String iparam, Object... params2) {
+            public String parse(Token token, Object... params2) throws ParseTokenException {
+                String iparam = token.data;
                 if (!iparam.matches(STRING)) {
-                    throw new IllegalArgumentException();
+                    throw new ParseTokenException(token, "not a string ");
                 }
                 iparam = iparam.substring(1, iparam.length() - 1);
                 StringBuilder out = new StringBuilder();
@@ -480,6 +530,7 @@ public class NodeParser {
                         char c2 = iparam.charAt(i + 1);
                         if (c2 == 'u') {
                             String ss = iparam.substring(i + 2, i + 6);
+                            //TODO exception
                             out.append((char) Integer.parseInt(ss, 16));
                             i += 6;
                         } else {
@@ -509,7 +560,7 @@ public class NodeParser {
                                     out.append('\'');
                                     break;
                                 default:
-                                    throw new IllegalStateException();
+                                    throw new ParseTokenException(token, "illegal char '" + c2 + "' ");
                             }
                             i += 2;
                         }
@@ -527,14 +578,16 @@ public class NodeParser {
             }
         };
 
-        public abstract Object parse(String iparam, Object... params2);
+        public abstract Object parse(Token token, Object... params2) throws ParseException;
 
         public abstract Object getDefault();
     }
 
     public interface InstructionCreator {
 
-        Instruction getInstruction(String[] iparams, int vregs, int ins, int outs, int inum, Map<String, Integer> indentifiers);
+        Instruction getInstruction(Token[] tokens,
+                int vregs, int ins, int outs, int inum,
+                Map<String, Integer> indentifiers) throws ParseException;
 
         int getParamsCount();
     }
@@ -556,8 +609,10 @@ public class NodeParser {
         }
 
         @Override
-        public Instruction getInstruction(String[] iparams, int vregs, int ins, int outs, int inum, Map<String, Integer> indentifiers) {
-            if (iparams.length != paramtypes.length) {
+        public Instruction getInstruction(Token[] tokens,
+                int vregs, int ins, int outs, int inum,
+                Map<String, Integer> indentifiers) throws ParseException {
+            if (tokens.length != paramtypes.length) {
                 throw new IllegalArgumentException();
             }
             Object[] out = new Object[paramtypes.length];
@@ -565,13 +620,13 @@ public class NodeParser {
                 ParamType type = paramtypes[i];
                 switch (type) {
                     case Register:
-                        out[i] = type.parse(iparams[i], vregs, ins, outs);
+                        out[i] = type.parse(tokens[i], vregs, ins, outs);
                         break;
                     case Identifier:
-                        out[i] = type.parse(iparams[i], indentifiers, inum);
+                        out[i] = type.parse(tokens[i], indentifiers, inum);
                         break;
                     default:
-                        out[i] = type.parse(iparams[i]);
+                        out[i] = type.parse(tokens[i]);
                         break;
                 }
             }

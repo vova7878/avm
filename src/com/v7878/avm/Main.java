@@ -1,6 +1,7 @@
 package com.v7878.avm;
 
 import static com.v7878.avm.NodeParser.parseNodes;
+import com.v7878.avm.exceptions.ParseException;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -17,7 +18,7 @@ import javax.swing.JFrame;
 
 public class Main {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, ParseException {
         Display.init();
         String data;
         File nodes = new File("nodes.txt");
