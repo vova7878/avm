@@ -455,7 +455,7 @@ public final class Wide extends Number implements Comparable<Wide> {
         static final Wide[] cache;
 
         static {
-            int size = -(DOWN) + UP + 1;
+            int size = UP - DOWN + 1;
             Wide[] c = new Wide[size];
             long value = DOWN;
             for (int i = 0; i < size; i++) {

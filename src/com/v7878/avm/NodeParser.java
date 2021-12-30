@@ -12,7 +12,6 @@ import com.v7878.avm.utils.Pair;
 import com.v7878.avm.utils.Tokenizer;
 import com.v7878.avm.utils.Token;
 import com.v7878.avm.utils.Wide;
-
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -147,7 +146,7 @@ public class NodeParser {
                 if (!end) {
                     throw new ParseTokenException(tokens[start], "unclosed data block ");
                 }
-                data = parseData(Arrays.copyOfRange(tokens, start + 1, i));
+                data = parseData(Arrays.copyOfRange(tokens, start, i));
                 i++;
                 if (i == tokens.length) {
                     out = Machine.get().newNode(flags, data, false);
@@ -187,8 +186,13 @@ public class NodeParser {
     }
 
     private static ByteBuffer parseData(Token[] tokens) throws ParseException {
-        //TODO size check
-        int i = 0;
+        if (tokens.length == 0) {
+            throw new IllegalArgumentException();
+        }
+        if (tokens.length < 2) {
+            throw new ParseTokenException(tokens[0], "not contains all params ");
+        }
+        int i = 1;
         int size = (int) ParamType.SimpleUInt.parse(tokens[i++]);
         ByteBuffer out = Machine.allocate(size);
         for (; i < tokens.length; i++) {
@@ -213,7 +217,7 @@ public class NodeParser {
                     case 'w':
                         DualBuffer.putWide(out, (Wide) ParamType.Int128.parse(tokens[i]));
                     default:
-                        throw new ParseException();
+                        throw new IllegalStateException();
                 }
             } else {
                 throw new ParseTokenException(tokens[i], "unknown data type ");
@@ -280,7 +284,12 @@ public class NodeParser {
                 int vregs = (int) params2[0], ins = (int) params2[1], outs = (int) params2[2];
                 iparam = iparam.toLowerCase();
                 char type = iparam.charAt(0);
-                int reg = NewApiUtils.parseInt(iparam, 1, iparam.length(), 10);
+                int reg;
+                try {
+                    reg = NewApiUtils.parseInt(iparam, 1, iparam.length(), 10);
+                } catch (NumberFormatException e) {
+                    throw new ParseTokenException(token);
+                }
                 switch (type) {
                     case 'v':
                         return reg;
@@ -323,7 +332,13 @@ public class NodeParser {
                 if (!iparam.matches(SIMPLE_UINT)) {
                     throw new ParseTokenException(token, "not a simple uint ");
                 }
-                return Integer.parseInt(iparam);
+                int out;
+                try {
+                    out = Integer.parseInt(iparam);
+                } catch (NumberFormatException e) {
+                    throw new ParseTokenException(token);
+                }
+                return out;
             }
 
             @Override

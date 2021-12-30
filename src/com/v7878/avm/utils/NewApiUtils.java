@@ -13,7 +13,8 @@ public class NewApiUtils {
         return v;
     }
 
-    public static int parseInt(CharSequence s, int beginIndex, int endIndex, int radix) {
+    public static int parseInt(CharSequence s, int beginIndex, int endIndex, int radix)
+            throws NumberFormatException {
         return Integer.parseInt(s.subSequence(beginIndex, endIndex).toString(), radix);
     }
 

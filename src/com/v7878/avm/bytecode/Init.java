@@ -168,10 +168,13 @@ public class Init {
             XorInt64.init();
             XorInt128.init();
 
+            DoubleToFloat.init();
             DoubleToInt32.init();
             DoubleToInt64.init();
+            FloatToDouble.init();
             FloatToInt32.init();
             FloatToInt64.init();
+
             Int8ToInt16.init();
             Int8ToInt32.init();
             Int8ToInt64.init();
@@ -188,8 +191,13 @@ public class Init {
             Int64ToDouble.init();
             Int128ToFloat.init();
             Int128ToDouble.init();
+
             UInt32ToDouble.init();
             UInt32ToFloat.init();
+            UInt64ToDouble.init();
+            UInt64ToFloat.init();
+            UInt128ToDouble.init();
+            UInt128ToFloat.init();
 
             Nop.init();
             Return.init();
