@@ -60,15 +60,15 @@ public class Tree16<T> implements Tree<T> {
                     } else {
                         if (child == null) {
                             child = new Tree16<>();
+                            data[i] = child;
                         }
                         int tmp_position = child.put(value, level - 1);
-                        data[i] = child;
                         out = (tmp_position << 4) | i;
-                        set = true;
                         if (!child.full) {
                             tmp_full = false;
                             break;
                         }
+                        set = true;
                     }
                 }
             }

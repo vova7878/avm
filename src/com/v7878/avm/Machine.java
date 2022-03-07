@@ -10,6 +10,7 @@ import com.v7878.avm.Metadata.InvokeInfo;
 import com.v7878.avm.bytecode.Instruction;
 import com.v7878.avm.bytecode.Interpreter;
 import com.v7878.avm.utils.NewApiUtils;
+import com.v7878.avm.utils.Tree;
 import com.v7878.avm.utils.Tree16;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -43,7 +44,7 @@ public class Machine {
         return vm;
     }
 
-    private final Tree16<Node> nodes = new Tree16<>();
+    private final Tree<Node> nodes = new Tree16<>();
     private final Map<String, Node> names = new HashMap<>();
 
     private Machine() {
@@ -162,7 +163,7 @@ public class Machine {
     public ByteBuffer invoke(Node node, ByteBuffer in) {
         synchronized (node) {
             if (node.withFlags(NODE_DELETED)) {
-                throw new IllegalStateException("node deleted");
+                throw new IllegalStateException("Node deleted");
             }
             flags.put(node, node.getFlags() | NODE_INVOKED);
             icounter.count(node, true);
@@ -184,10 +185,10 @@ public class Machine {
         Objects.requireNonNull(name);
         synchronized (node) {
             if (node.withFlags(NODE_DELETED | NODE_NAMED)) {
-                throw new IllegalStateException("can not set node name");
+                throw new IllegalStateException("Can not set node name");
             }
             if (NewApiUtils.putIfAbsent(names, name, node) != null) {
-                throw new IllegalStateException("name \"" + name + "\" is already in use");
+                throw new IllegalStateException("Name \"" + name + "\" is already in use");
             }
             flags.put(node, node.getFlags() | NODE_NAMED);
         }
@@ -196,7 +197,7 @@ public class Machine {
     public Node findNode(String name) {
         Node out = names.get(name);
         if (out == null) {
-            throw new RuntimeException("node \"" + name + "\" not found");
+            throw new RuntimeException("Node \"" + name + "\" not found");
         }
         return out;
     }
@@ -210,12 +211,12 @@ public class Machine {
     public Node deleteNode(Node node) {
         synchronized (node) {
             if (node.withFlags(NODE_DELETED | NODE_INDELIBLE | NODE_INVOKED | NODE_NAMED)) {
-                throw new IllegalStateException("can not delete node");
+                throw new IllegalStateException("Can not delete node");
             }
             Node out = deleteNode(node.getIndex());
             flags.put(node, node.getFlags() | NODE_DELETED);
             if (node != out) {
-                throw new IllegalStateException("different nodes");
+                throw new IllegalStateException("Different nodes");
             }
             return out;
         }
