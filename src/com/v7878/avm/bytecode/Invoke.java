@@ -5,13 +5,14 @@ import com.v7878.avm.Node;
 import com.v7878.avm.NodeParser;
 import static com.v7878.avm.NodeParser.ParamType.Register;
 import static com.v7878.avm.NodeParser.ParamType.SimpleUInt;
+import com.v7878.avm.NodeParser.SimpleInstructionCreator;
 import com.v7878.avm.utils.DualBuffer;
 import java.nio.ByteBuffer;
 
 public class Invoke extends SimpleInstruction {
 
     static void init() {
-        NodeParser.addCreator("invoke", new NodeParser.SimpleInstructionCreator(
+        NodeParser.addCreator("invoke", new SimpleInstructionCreator(
                 (objs) -> new Invoke((int) objs[0], (int) objs[1], (int) objs[2], (int) objs[3], (int) objs[4]),
                 Register, Register, SimpleUInt, Register, SimpleUInt));
     }

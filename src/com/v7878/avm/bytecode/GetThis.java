@@ -1,15 +1,15 @@
 package com.v7878.avm.bytecode;
 
-import static com.v7878.avm.NodeParser.ParamType.Register;
-
 import com.v7878.avm.Node;
 import com.v7878.avm.NodeParser;
+import static com.v7878.avm.NodeParser.ParamType.Register;
+import com.v7878.avm.NodeParser.SimpleInstructionCreator;
 import com.v7878.avm.utils.DualBuffer;
 
 public class GetThis implements Instruction {
 
     static void init() {
-        NodeParser.addCreator("get-this", new NodeParser.SimpleInstructionCreator(
+        NodeParser.addCreator("get-this", new SimpleInstructionCreator(
                 (objs) -> new GetThis((int) objs[0]),
                 Register));
     }

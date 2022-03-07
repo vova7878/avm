@@ -4,12 +4,13 @@ import com.v7878.avm.Machine;
 import com.v7878.avm.Node;
 import com.v7878.avm.NodeParser;
 import static com.v7878.avm.NodeParser.ParamType.Register;
+import com.v7878.avm.NodeParser.SimpleInstructionCreator;
 import com.v7878.avm.utils.DualBuffer;
 
 public class GetData128 extends DataInstruction {
 
     static void init() {
-        NodeParser.addCreator("get-data128", new NodeParser.SimpleInstructionCreator(
+        NodeParser.addCreator("get-data128", new SimpleInstructionCreator(
                 (objs) -> new GetData128((int) objs[0], (int) objs[1], (int) objs[2]),
                 Register, Register, Register));
     }

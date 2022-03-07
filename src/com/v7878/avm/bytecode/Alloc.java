@@ -4,12 +4,13 @@ import com.v7878.avm.Machine;
 import com.v7878.avm.Node;
 import com.v7878.avm.NodeParser;
 import static com.v7878.avm.NodeParser.ParamType.Register;
+import com.v7878.avm.NodeParser.SimpleInstructionCreator;
 import com.v7878.avm.utils.DualBuffer;
 
 public class Alloc extends SimpleInstruction {
 
     static void init() {
-        NodeParser.addCreator("alloc", new NodeParser.SimpleInstructionCreator(
+        NodeParser.addCreator("alloc", new SimpleInstructionCreator(
                 (objs) -> new Alloc((int) objs[0], (int) objs[1]),
                 Register, Register));
     }

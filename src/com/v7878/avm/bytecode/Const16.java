@@ -1,15 +1,15 @@
 package com.v7878.avm.bytecode;
 
+import com.v7878.avm.NodeParser;
 import static com.v7878.avm.NodeParser.ParamType.Int16;
 import static com.v7878.avm.NodeParser.ParamType.Register;
-
-import com.v7878.avm.NodeParser;
+import com.v7878.avm.NodeParser.SimpleInstructionCreator;
 import com.v7878.avm.utils.DualBuffer;
 
 public class Const16 extends SimpleInstruction {
 
     static void init() {
-        NodeParser.addCreator("const16", new NodeParser.SimpleInstructionCreator(
+        NodeParser.addCreator("const16", new SimpleInstructionCreator(
                 (objs) -> new Const16((int) objs[0], (short) objs[1]),
                 Register, Int16));
     }

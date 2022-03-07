@@ -1,16 +1,16 @@
 package com.v7878.avm.bytecode;
 
-import static com.v7878.avm.NodeParser.ParamType.Identifier;
-import static com.v7878.avm.NodeParser.ParamType.Register;
-
 import com.v7878.avm.Node;
 import com.v7878.avm.NodeParser;
+import static com.v7878.avm.NodeParser.ParamType.Identifier;
+import static com.v7878.avm.NodeParser.ParamType.Register;
+import com.v7878.avm.NodeParser.SimpleInstructionCreator;
 import com.v7878.avm.utils.DualBuffer;
 
 public class IfGtz implements Instruction {
 
     static void init() {
-        NodeParser.addCreator("if-gtz", new NodeParser.SimpleInstructionCreator(
+        NodeParser.addCreator("if-gtz", new SimpleInstructionCreator(
                 (objs) -> new IfGtz((int) objs[0], (int) objs[1]),
                 Register, Identifier));
     }

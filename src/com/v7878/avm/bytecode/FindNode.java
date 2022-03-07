@@ -4,12 +4,13 @@ import com.v7878.avm.Machine;
 import com.v7878.avm.NodeParser;
 import static com.v7878.avm.NodeParser.ParamType.Register;
 import static com.v7878.avm.NodeParser.ParamType.String;
+import com.v7878.avm.NodeParser.SimpleInstructionCreator;
 import com.v7878.avm.utils.DualBuffer;
 
 public class FindNode extends SimpleInstruction {
 
     static void init() {
-        NodeParser.addCreator("find-node", new NodeParser.SimpleInstructionCreator(
+        NodeParser.addCreator("find-node", new SimpleInstructionCreator(
                 (objs) -> new FindNode((int) objs[0], (String) objs[1]),
                 Register, String));
     }

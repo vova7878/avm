@@ -1,14 +1,14 @@
 package com.v7878.avm.bytecode;
 
-import static com.v7878.avm.NodeParser.ParamType.Register;
-
 import com.v7878.avm.NodeParser;
+import static com.v7878.avm.NodeParser.ParamType.Register;
+import com.v7878.avm.NodeParser.SimpleInstructionCreator;
 import com.v7878.avm.utils.DualBuffer;
 
 public class UShrInt16 extends SimpleInstruction {
 
     static void init() {
-        NodeParser.addCreator("ushr-int16", new NodeParser.SimpleInstructionCreator(
+        NodeParser.addCreator("ushr-int16", new SimpleInstructionCreator(
                 (objs) -> new UShrInt16((int) objs[0], (int) objs[1], (int) objs[2]),
                 Register, Register, Register));
     }
@@ -23,7 +23,7 @@ public class UShrInt16 extends SimpleInstruction {
 
     @Override
     public void handle(DualBuffer data) {
-        int a = data.getShort(A);
+        int a = data.getShort(A) & 0xffff;
         int b = data.get(B);
         data.putShort(C, (short) (a >>> b));
     }

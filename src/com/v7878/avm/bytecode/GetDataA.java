@@ -5,12 +5,13 @@ import com.v7878.avm.Node;
 import com.v7878.avm.NodeParser;
 import static com.v7878.avm.NodeParser.ParamType.Register;
 import static com.v7878.avm.NodeParser.ParamType.SimpleUInt;
+import com.v7878.avm.NodeParser.SimpleInstructionCreator;
 import com.v7878.avm.utils.DualBuffer;
 
 public class GetDataA extends DataInstruction {
 
     static void init() {
-        NodeParser.addCreator("get-dataA", new NodeParser.SimpleInstructionCreator(
+        NodeParser.addCreator("get-dataA", new SimpleInstructionCreator(
                 (objs) -> new GetDataA((int) objs[0], (int) objs[1], (int) objs[2], (int) objs[3]),
                 Register, Register, Register, SimpleUInt));
     }

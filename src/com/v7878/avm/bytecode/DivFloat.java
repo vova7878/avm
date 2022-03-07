@@ -1,14 +1,14 @@
 package com.v7878.avm.bytecode;
 
-import static com.v7878.avm.NodeParser.ParamType.Register;
-
 import com.v7878.avm.NodeParser;
+import static com.v7878.avm.NodeParser.ParamType.Register;
+import com.v7878.avm.NodeParser.SimpleInstructionCreator;
 import com.v7878.avm.utils.DualBuffer;
 
 public class DivFloat extends SimpleInstruction {
 
     static void init() {
-        NodeParser.addCreator("div-float", new NodeParser.SimpleInstructionCreator(
+        NodeParser.addCreator("div-float", new SimpleInstructionCreator(
                 (objs) -> new DivFloat((int) objs[0], (int) objs[1], (int) objs[2]),
                 Register, Register, Register));
     }

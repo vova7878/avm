@@ -3,7 +3,6 @@ package com.v7878.avm.bytecode;
 import com.v7878.avm.Node;
 import com.v7878.avm.NodeHandler;
 import com.v7878.avm.utils.DualBuffer;
-
 import java.nio.ByteBuffer;
 
 public class Interpreter implements NodeHandler {

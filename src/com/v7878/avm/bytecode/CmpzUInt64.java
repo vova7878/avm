@@ -1,14 +1,14 @@
 package com.v7878.avm.bytecode;
 
-import static com.v7878.avm.NodeParser.ParamType.Register;
-
 import com.v7878.avm.NodeParser;
+import static com.v7878.avm.NodeParser.ParamType.Register;
+import com.v7878.avm.NodeParser.SimpleInstructionCreator;
 import com.v7878.avm.utils.DualBuffer;
 
 public class CmpzUInt64 extends SimpleInstruction {
 
     static void init() {
-        NodeParser.addCreator("cmpz-uint64", new NodeParser.SimpleInstructionCreator(
+        NodeParser.addCreator("cmpz-uint64", new SimpleInstructionCreator(
                 (objs) -> new CmpzUInt64((int) objs[0], (int) objs[1]),
                 Register, Register));
     }
@@ -22,7 +22,6 @@ public class CmpzUInt64 extends SimpleInstruction {
 
     @Override
     public void handle(DualBuffer data) {
-        long a = data.getLong(A);
         data.put(B, (byte) (data.getLong(A) == 0 ? 0 : 1));
     }
 }

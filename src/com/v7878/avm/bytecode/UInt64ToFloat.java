@@ -2,12 +2,13 @@ package com.v7878.avm.bytecode;
 
 import com.v7878.avm.NodeParser;
 import static com.v7878.avm.NodeParser.ParamType.Register;
+import com.v7878.avm.NodeParser.SimpleInstructionCreator;
 import com.v7878.avm.utils.DualBuffer;
 
 public class UInt64ToFloat extends SimpleInstruction {
 
     static void init() {
-        NodeParser.addCreator("uint64-to-float", new NodeParser.SimpleInstructionCreator(
+        NodeParser.addCreator("uint64-to-float", new SimpleInstructionCreator(
                 (objs) -> new UInt64ToFloat((int) objs[0], (int) objs[1]),
                 Register, Register));
     }

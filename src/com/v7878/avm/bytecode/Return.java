@@ -2,6 +2,7 @@ package com.v7878.avm.bytecode;
 
 import com.v7878.avm.Node;
 import com.v7878.avm.NodeParser;
+import com.v7878.avm.NodeParser.SimpleInstructionCreator;
 import com.v7878.avm.utils.DualBuffer;
 
 public class Return implements Instruction {
@@ -9,7 +10,7 @@ public class Return implements Instruction {
     public static final Return INSTANCE = new Return();
 
     static void init() {
-        NodeParser.addCreator("return", new NodeParser.SimpleInstructionCreator(
+        NodeParser.addCreator("return", new SimpleInstructionCreator(
                 (objs) -> INSTANCE));
     }
 

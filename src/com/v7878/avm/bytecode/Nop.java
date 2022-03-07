@@ -1,6 +1,7 @@
 package com.v7878.avm.bytecode;
 
 import com.v7878.avm.NodeParser;
+import com.v7878.avm.NodeParser.SimpleInstructionCreator;
 import com.v7878.avm.utils.DualBuffer;
 
 public class Nop extends SimpleInstruction {
@@ -8,7 +9,7 @@ public class Nop extends SimpleInstruction {
     public static final Nop INSTANCE = new Nop();
 
     static void init() {
-        NodeParser.addCreator("nop", new NodeParser.SimpleInstructionCreator(
+        NodeParser.addCreator("nop", new SimpleInstructionCreator(
                 (objs) -> INSTANCE));
     }
 

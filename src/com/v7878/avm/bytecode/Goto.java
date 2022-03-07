@@ -1,15 +1,15 @@
 package com.v7878.avm.bytecode;
 
-import static com.v7878.avm.NodeParser.ParamType.Identifier;
-
 import com.v7878.avm.Node;
 import com.v7878.avm.NodeParser;
+import static com.v7878.avm.NodeParser.ParamType.Identifier;
+import com.v7878.avm.NodeParser.SimpleInstructionCreator;
 import com.v7878.avm.utils.DualBuffer;
 
 public class Goto implements Instruction {
 
     static void init() {
-        NodeParser.addCreator("goto", new NodeParser.SimpleInstructionCreator(
+        NodeParser.addCreator("goto", new SimpleInstructionCreator(
                 (objs) -> new Goto((int) objs[0]),
                 Identifier));
     }
