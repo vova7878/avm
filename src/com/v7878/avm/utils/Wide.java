@@ -1,6 +1,6 @@
 package com.v7878.avm.utils;
 
-public final class Wide extends Number implements Comparable<Wide> {
+public final class Wide extends Number implements Comparable<Wide>, Comparable2<Wide> {
 
     public static final int SIZE = 128;
     public static final int BYTES = SIZE / Byte.SIZE;
@@ -140,7 +140,7 @@ public final class Wide extends Number implements Comparable<Wide> {
     public Wide multiply(Wide y) {
         int[] out = new int[4];
         multiply(out, toIntArray(), y.toIntArray(), 4);
-        return fromIntArray(out);
+        return fromIntArray(out, 0);
     }
 
     private static void multiply(int[] w, int[] v, int[] u, int s) {
@@ -151,6 +151,24 @@ public final class Wide extends Number implements Comparable<Wide> {
                 w[i + j] = (int) t;
                 k = t >>> 32;
             }
+        }
+    }
+
+    public Wide[] ufullmultiply(Wide y) {
+        int[] out = new int[8];
+        ufullmultiply(out, toIntArray(), y.toIntArray(), 4);
+        return new Wide[]{fromIntArray(out, 0), fromIntArray(out, 4)};
+    }
+
+    private static void ufullmultiply(int[] w, int[] v, int[] u, int s) {
+        for (int j = 0; j < s; j++) {
+            long k = 0;
+            for (int i = 0; i < s; i++) {
+                long t = (u[i] & 0xffffffffL) * (v[j] & 0xffffffffL) + (w[i + j] & 0xffffffffL) + k;
+                w[i + j] = (int) t;
+                k = t >>> 32;
+            }
+            w[j + s] = (int) k;
         }
     }
 
@@ -325,8 +343,9 @@ public final class Wide extends Number implements Comparable<Wide> {
         return new int[]{(int) low, (int) (low >>> 32), (int) high, (int) (high >>> 32)};
     }
 
-    private static Wide fromIntArray(int[] data) {
-        return Wide.valueOf((data[0] & 0xffffffffL) | ((long) data[1] << 32), (data[2] & 0xffffffffL) | ((long) data[3] << 32));
+    private static Wide fromIntArray(int[] data, int s) {
+        return Wide.valueOf((data[0 + s] & 0xffffffffL) | ((long) data[1 + s] << 32),
+                (data[2 + s] & 0xffffffffL) | ((long) data[3 + s] << 32));
     }
 
     @Override
@@ -356,6 +375,79 @@ public final class Wide extends Number implements Comparable<Wide> {
         return NewApiUtils.compareUnsigned(x.low, y.low);
     }
 
+    @Override
+    public boolean eq(Wide other) {
+        return eq(this, other);
+    }
+
+    @Override
+    public boolean more(Wide other) {
+        return more(this, other);
+    }
+
+    @Override
+    public boolean less(Wide other) {
+        return less(this, other);
+    }
+
+    @Override
+    public boolean moreOrEq(Wide other) {
+        return moreOrEq(this, other);
+    }
+
+    @Override
+    public boolean lessOrEq(Wide other) {
+        return lessOrEq(this, other);
+    }
+
+    public static boolean eq(Wide x, Wide y) {
+        return (x.low == y.low) && (x.high == y.high);
+    }
+
+    public static boolean more(Wide x, Wide y) {
+        if (x.high > y.high) {
+            return true;
+        }
+        if (x.high < y.high) {
+            return false;
+        }
+        return NewApiUtils.compareUnsigned(x.low, y.low) > 0;
+    }
+
+    public static boolean less(Wide x, Wide y) {
+        if (x.high < y.high) {
+            return true;
+        }
+        if (x.high > y.high) {
+            return false;
+        }
+        return NewApiUtils.compareUnsigned(x.low, y.low) < 0;
+    }
+
+    public static boolean neq(Wide x, Wide y) {
+        return x.neq(y);
+    }
+
+    public static boolean moreOrEq(Wide x, Wide y) {
+        if (x.high > y.high) {
+            return true;
+        }
+        if (x.high < y.high) {
+            return false;
+        }
+        return NewApiUtils.compareUnsigned(x.low, y.low) >= 0;
+    }
+
+    public static boolean lessOrEq(Wide x, Wide y) {
+        if (x.high < y.high) {
+            return true;
+        }
+        if (x.high > y.high) {
+            return false;
+        }
+        return NewApiUtils.compareUnsigned(x.low, y.low) <= 0;
+    }
+
     public int signum() {
         return signum(this);
     }
@@ -376,13 +468,12 @@ public final class Wide extends Number implements Comparable<Wide> {
             return false;
         }
         Wide other = (Wide) obj;
-        return (low == other.low)
-                && (high == other.high);
+        return this.eq(other);
     }
 
     @Override
     public int hashCode() {
-        return (int) (low ^ high ^ (low >> 32) ^ (high >> 32));
+        return (int) (low ^ high ^ (low >>> 32) ^ (high >>> 32));
     }
 
     @Override
@@ -433,7 +524,7 @@ public final class Wide extends Number implements Comparable<Wide> {
 
         Wide wradix = Wide.valueOf(radix);
         Wide wnradix = Wide.valueOf(-radix);
-        while (Wide.compare(i, wnradix) <= 0) {
+        while (Wide.lessOrEq(i, wnradix)) {
             Wide[] r = i.divideAndRemainder(wradix);
             buf[charPos--] = digits[r[1].negate().intValue()];
             i = r[0];
@@ -444,6 +535,43 @@ public final class Wide extends Number implements Comparable<Wide> {
             buf[--charPos] = '-';
         }
         return String.valueOf(buf, charPos, (129 - charPos));
+    }
+
+    public String toUnsignedHexString() {
+        return toUnsignedHexString(this);
+    }
+
+    public static String toUnsignedHexString(Wide i) {
+        return toUnsignedString(i, 16);
+    }
+
+    public String toBUnsignedinaryString() {
+        return toUnsignedBinaryString(this);
+    }
+
+    public static String toUnsignedBinaryString(Wide i) {
+        return toUnsignedString(i, 2);
+    }
+
+    public String toUnsignedString(int radix) {
+        return toUnsignedString(this, radix);
+    }
+
+    public static String toUnsignedString(Wide i, int radix) {
+        if (radix < Character.MIN_RADIX || radix > Character.MAX_RADIX) {
+            radix = 10;
+        }
+        char[] buf = new char[128];
+        int charPos = 127;
+
+        Wide wradix = Wide.valueOf(radix);
+        while (Wide.compareUnsigned(i, wradix) >= 0) {
+            Wide[] r = i.divideAndRemainderUnsigned(wradix);
+            buf[charPos--] = digits[r[1].intValue()];
+            i = r[0];
+        }
+        buf[charPos] = digits[i.intValue()];
+        return String.valueOf(buf, charPos, (128 - charPos));
     }
 
     private static class WideCache {
@@ -473,16 +601,16 @@ public final class Wide extends Number implements Comparable<Wide> {
     }
 
     public static Wide valueOf(long l) {
-        final int offset = -WideCache.DOWN;
         if (l >= WideCache.DOWN && l <= WideCache.UP) {
+            final int offset = -WideCache.DOWN;
             return WideCache.cache[(int) l + offset];
         }
         return new Wide(l);
     }
 
     public static Wide valueOf(int l) {
-        final int offset = -WideCache.DOWN;
         if (l >= WideCache.DOWN && l <= WideCache.UP) {
+            final int offset = -WideCache.DOWN;
             return WideCache.cache[l + offset];
         }
         return new Wide(l);
