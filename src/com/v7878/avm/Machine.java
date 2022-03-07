@@ -11,7 +11,6 @@ import com.v7878.avm.bytecode.Instruction;
 import com.v7878.avm.bytecode.Interpreter;
 import com.v7878.avm.utils.NewApiUtils;
 import com.v7878.avm.utils.Tree16;
-
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;

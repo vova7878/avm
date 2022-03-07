@@ -1,11 +1,9 @@
 package com.v7878.avm;
 
-import static com.v7878.avm.utils.NewApiUtils.slice;
-
 import com.v7878.avm.Machine.MetadataCreator;
 import com.v7878.avm.Metadata.InvokeInfo;
 import com.v7878.avm.utils.NewApiUtils;
-
+import static com.v7878.avm.utils.NewApiUtils.slice;
 import java.nio.ByteBuffer;
 
 public class Node {
