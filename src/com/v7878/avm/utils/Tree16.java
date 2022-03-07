@@ -35,39 +35,45 @@ public class Tree16<T> implements Tree<T> {
             throw new IllegalStateException();
         }
         int out = 0;
-        boolean not_full = false;
+        boolean tmp_full = true;
+        boolean set = false;
         if (level == 0) {
             for (int i = 0; i < 16; i++) {
                 if (data[i] == null) {
-                    data[i] = value;
-                    out = i;
-                    not_full = true;
-                    break;
+                    if (set) {
+                        tmp_full = false;
+                        break;
+                    } else {
+                        data[i] = value;
+                        out = i;
+                        set = true;
+                    }
                 }
             }
         } else {
-            boolean set = false;
             for (int i = 0; i < 16; i++) {
                 Tree16<T> child = (Tree16<T>) data[i];
                 if (child == null || !child.full) {
-                    if (!set) {
+                    if (set) {
+                        tmp_full = false;
+                        break;
+                    } else {
                         if (child == null) {
                             child = new Tree16<>();
                         }
                         int tmp_position = child.put(value, level - 1);
                         data[i] = child;
                         out = (tmp_position << 4) | i;
-                        if (child.full) {
-                            set = true;
-                            continue;
+                        set = true;
+                        if (!child.full) {
+                            tmp_full = false;
+                            break;
                         }
                     }
-                    not_full = true;
-                    break;
                 }
             }
         }
-        full = !not_full;
+        full = tmp_full;
         return out;
     }
 
