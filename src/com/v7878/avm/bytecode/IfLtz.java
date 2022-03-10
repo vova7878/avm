@@ -1,5 +1,6 @@
 package com.v7878.avm.bytecode;
 
+import com.v7878.avm.InvokeRequest;
 import com.v7878.avm.Node;
 import com.v7878.avm.NodeParser;
 import static com.v7878.avm.NodeParser.ParamType.Identifier;
@@ -23,7 +24,7 @@ public class IfLtz implements Instruction {
     }
 
     @Override
-    public int handle(Node node, DualBuffer data, Interpreter inter, boolean[] end) {
+    public int handle(Node node, DualBuffer data, Interpreter inter, InvokeRequest[] req, boolean[] end) {
         byte a = data.get(A);
         return a < 0 ? B : 1;
     }

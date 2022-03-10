@@ -1,5 +1,6 @@
 package com.v7878.avm.bytecode;
 
+import com.v7878.avm.InvokeRequest;
 import com.v7878.avm.Machine;
 import com.v7878.avm.Node;
 import com.v7878.avm.NodeParser;
@@ -9,7 +10,7 @@ import com.v7878.avm.NodeParser.SimpleInstructionCreator;
 import com.v7878.avm.utils.DualBuffer;
 import java.nio.ByteBuffer;
 
-public class Invoke extends SimpleInstruction {
+public class Invoke implements Instruction {
 
     static void init() {
         NodeParser.addCreator("invoke", new SimpleInstructionCreator(
@@ -28,10 +29,10 @@ public class Invoke extends SimpleInstruction {
     }
 
     @Override
-    public void handle(DualBuffer data) {
+    public int handle(Node thiz, DualBuffer data, Interpreter inter, InvokeRequest[] req, boolean[] end) {
         Machine m = Machine.get();
         Node node = m.getNode(data.getInt(A));
-        ByteBuffer bb = m.invoke(node, data.slice(B, C));
-        data.put(bb, D, 0, F);
+        req[0] = new InvokeRequest(node, data.slice(B, C), D, F);
+        return 1;
     }
 }

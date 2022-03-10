@@ -1,9 +1,9 @@
 package com.v7878.avm;
 
-import java.nio.ByteBuffer;
+import com.v7878.avm.threads.StackElement;
 
 @FunctionalInterface
 public interface NodeHandler {
 
-    void handle(Node node, ByteBuffer data);
+    InvokeRequest handle(StackElement current);
 }

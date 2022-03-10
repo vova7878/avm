@@ -9,20 +9,22 @@ import static com.v7878.avm.Constants.NODE_PROTECTED;
 import com.v7878.avm.Metadata.InvokeInfo;
 import com.v7878.avm.bytecode.Instruction;
 import com.v7878.avm.bytecode.Interpreter;
+import com.v7878.avm.interfaces.INode;
+import com.v7878.avm.threads.StackElement;
+import com.v7878.avm.threads.ThreadContext;
 import com.v7878.avm.utils.NewApiUtils;
+import static com.v7878.avm.utils.NewApiUtils.put;
+import static com.v7878.avm.utils.NewApiUtils.slice;
 import com.v7878.avm.utils.Tree;
 import com.v7878.avm.utils.Tree16;
 import java.nio.ByteBuffer;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class Machine {
+public final class Machine {
 
-    private static NodeCreator creator;
-    private static NodeInvoker invoker;
-    private static NodeInvocationCounter icounter;
-    private static NodeFlags flags;
+    private static INode inode;
     private static Machine vm;
     private static final int ALLOWED_FLAGS = NODE_PRIVATE | NODE_PROTECTED | NODE_INDELIBLE;
 
@@ -30,11 +32,11 @@ public class Machine {
         Node.init();
     }
 
-    static void init(NodeCreator creator, NodeInvoker invoker, NodeInvocationCounter icounter, NodeFlags flags) {
-        Machine.creator = creator;
-        Machine.invoker = invoker;
-        Machine.icounter = icounter;
-        Machine.flags = flags;
+    static void init(INode inode) {
+        if (Machine.inode != null) {
+            throw new SecurityException();
+        }
+        Machine.inode = inode;
     }
 
     public static Machine get() {
@@ -44,8 +46,9 @@ public class Machine {
         return vm;
     }
 
+    //TODO: thread-safe
     private final Tree<Node> nodes = new Tree16<>();
-    private final Map<String, Node> names = new HashMap<>();
+    private final Map<String, Node> names = new ConcurrentHashMap<>();
 
     private Machine() {
     }
@@ -55,7 +58,7 @@ public class Machine {
         if (regs < 0) {
             throw new IllegalArgumentException();
         }
-        return creator.create(allocate(regs), (node)
+        return inode.createNode(allocate(regs), (node)
                 -> new Metadata(putNode(node), null, flags));
     }
 
@@ -83,7 +86,7 @@ public class Machine {
         } else {
             data = in;
         }
-        return creator.create(data, (node)
+        return inode.createNode(data, (node)
                 -> new Metadata(putNode(node), null, flags));
     }
 
@@ -97,7 +100,7 @@ public class Machine {
         if (outs < 0 || ins < 0 || (ins + outs < 0)) {
             throw new IllegalArgumentException();
         }
-        return creator.create(allocate(0), (node)
+        return inode.createNode(allocate(0), (node)
                 -> new Metadata(putNode(node),
                         new InvokeInfo(ins + outs, ins, outs, h),
                         flags));
@@ -117,7 +120,7 @@ public class Machine {
         if (vregs < ins + outs) {
             throw new IllegalArgumentException();
         }
-        return creator.create(allocate(0), (node) -> new Metadata(putNode(node),
+        return inode.createNode(allocate(0), (node) -> new Metadata(putNode(node),
                 new InvokeInfo(vregs, ins, outs, new Interpreter(instrs)),
                 flags));
     }
@@ -151,30 +154,85 @@ public class Machine {
         } else {
             data = in;
         }
-        return creator.create(data, (node) -> new Metadata(putNode(node),
+        return inode.createNode(data, (node) -> new Metadata(putNode(node),
                 new InvokeInfo(vregs, ins, outs, new Interpreter(instrs)),
                 flags));
     }
 
-    static ByteBuffer allocate(int size) {
+    public static ByteBuffer allocate(int size) {
         return Node.fixOrder(ByteBuffer.allocate(size));
     }
 
-    public ByteBuffer invoke(Node node, ByteBuffer in) {
+    private InvokeRequest startInvoke(StackElement current) {
+        Node node = current.node;
         synchronized (node) {
             if (node.withFlags(NODE_DELETED)) {
                 throw new IllegalStateException("Node deleted");
             }
-            flags.put(node, node.getFlags() | NODE_INVOKED);
-            icounter.count(node, true);
+            inode.putFlags(node, node.getFlags() | NODE_INVOKED);
+            inode.count(node, true);
         }
-        ByteBuffer out = invoker.invoke(node, in);
+        return inode.invoke(current);
+    }
+
+    private void endInvoke(Node node) {
         synchronized (node) {
-            if (icounter.count(node, false) == 0) {
-                flags.put(node, node.getFlags() & ~NODE_INVOKED);
+            if (inode.count(node, false) == 0) {
+                inode.putFlags(node, node.getFlags() & ~NODE_INVOKED);
             }
         }
-        return out;
+    }
+
+    private void fillInput(ByteBuffer in, StackElement se) {
+        if (in != null) {
+            ByteBuffer vdata = se.vdata;
+            int ins = se.node.getInputsCount();
+            int offset = se.node.getInputOffset();
+            int write = Math.min(ins, in.remaining());
+            put(vdata, offset, in, in.position(), write);
+        }
+    }
+
+    private void fillOutput(ByteBuffer vdata, StackElement se,
+            InvokeRequest req) {
+        put(vdata, req.ret, se.vdata,
+                se.node.getOutputOffset(), req.rsize);
+    }
+
+    private void getOutput(Node node, ByteBuffer vdata, ByteBuffer out,
+            int offset, int length) {
+        int nodeOffset = node.getOutputOffset();
+        put(out, offset, vdata, nodeOffset, length);
+    }
+
+    @SuppressWarnings("null")
+    public void invoke(Node node, ByteBuffer in, int offsetIn, int lengthIn,
+            ByteBuffer out, int offsetOut, int lengthOut) {
+        ThreadContext current = ThreadContext.getCurrent();
+        StackElement se = null;
+        InvokeRequest req = new InvokeRequest(node, slice(in, offsetIn, lengthIn), 0, 0);
+        while (true) {
+            if (req == null) {
+                endInvoke(se.node);
+                if (se.node == node) {
+                    getOutput(node, se.vdata, out, offsetOut, lengthOut);
+                    current.deleteCurrent();
+                    break;
+                }
+                StackElement tmp = current.getPrevious();
+                fillOutput(tmp.vdata, se, tmp.req);
+                current.deleteCurrent();
+                tmp.req = null;
+                se = tmp;
+            } else {
+                if (se != null) {
+                    se.req = req;
+                }
+                se = current.nextStackElement(req.node);
+                fillInput(req.input, se);
+            }
+            req = startInvoke(se);
+        }
     }
 
     public Node getNode(int index) {
@@ -190,7 +248,7 @@ public class Machine {
             if (NewApiUtils.putIfAbsent(names, name, node) != null) {
                 throw new IllegalStateException("Name \"" + name + "\" is already in use");
             }
-            flags.put(node, node.getFlags() | NODE_NAMED);
+            inode.putFlags(node, node.getFlags() | NODE_NAMED);
         }
     }
 
@@ -214,7 +272,7 @@ public class Machine {
                 throw new IllegalStateException("Can not delete node");
             }
             Node out = deleteNode(node.getIndex());
-            flags.put(node, node.getFlags() | NODE_DELETED);
+            inode.putFlags(node, node.getFlags() | NODE_DELETED);
             if (node != out) {
                 throw new IllegalStateException("Different nodes");
             }
@@ -232,35 +290,5 @@ public class Machine {
         if ((flags & ~ALLOWED_FLAGS) != 0) {
             throw new IllegalArgumentException("Invalid flags");
         }
-    }
-
-    @FunctionalInterface
-    interface MetadataCreator {
-
-        Metadata get(Node n);
-    }
-
-    @FunctionalInterface
-    interface NodeInvoker {
-
-        ByteBuffer invoke(Node node, ByteBuffer in);
-    }
-
-    @FunctionalInterface
-    interface NodeFlags {
-
-        void put(Node node, int flags);
-    }
-
-    @FunctionalInterface
-    interface NodeInvocationCounter {
-
-        int count(Node node, boolean add);
-    }
-
-    @FunctionalInterface
-    interface NodeCreator {
-
-        Node create(ByteBuffer data, MetadataCreator info);
     }
 }

@@ -1,27 +1,44 @@
 package com.v7878.avm;
 
-import com.v7878.avm.Machine.MetadataCreator;
 import com.v7878.avm.Metadata.InvokeInfo;
-import com.v7878.avm.utils.NewApiUtils;
-import static com.v7878.avm.utils.NewApiUtils.slice;
+import com.v7878.avm.interfaces.INode;
+import com.v7878.avm.interfaces.INode.MetadataCreator;
+import com.v7878.avm.threads.StackElement;
 import java.nio.ByteBuffer;
 
-public class Node {
+public final class Node {
 
     static void init() {
-        Machine.init(Node::new,
-                Node::invoke,
-                (node, add) -> node.info.iinfo.invocationCount += add ? 1 : -1,
-                (node, flags) -> node.info.flags = flags);
+        Machine.init(new INode() {
+            @Override
+            public InvokeRequest invoke(StackElement current) {
+                return current.node.invoke(current);
+            }
+
+            @Override
+            public void putFlags(Node node, int flags) {
+                node.info.flags = flags;
+            }
+
+            @Override
+            public int count(Node node, boolean add) {
+                return node.info.iinfo.invocationCount += add ? 1 : -1;
+            }
+
+            @Override
+            public Node createNode(ByteBuffer data, MetadataCreator creator) {
+                return new Node(data, creator);
+            }
+        });
     }
 
     private final ByteBuffer data;
     private final Metadata info;
 
     @SuppressWarnings("LeakingThisInConstructor")
-    private Node(ByteBuffer data, MetadataCreator info) {
+    private Node(ByteBuffer data, MetadataCreator creator) {
         this.data = data;
-        this.info = info.get(this);
+        this.info = creator.createMetadata(this);
     }
 
     public static ByteBuffer fixOrder(ByteBuffer bb) {
@@ -41,6 +58,7 @@ public class Node {
         return (info.flags & flags) != 0;
     }
 
+    //TODO: check safe
     public ByteBuffer getData() {
         return fixOrder(data.duplicate());
     }
@@ -49,18 +67,51 @@ public class Node {
         return info.index;
     }
 
-    private ByteBuffer invoke(ByteBuffer in) {
+    public int getInputOffset() {
+        InvokeInfo iinfo = info.iinfo;
+        if (iinfo == null) {
+            return 0;
+        }
+        return iinfo.regs - iinfo.ins - iinfo.outs;
+    }
+
+    public int getOutputOffset() {
+        InvokeInfo iinfo = info.iinfo;
+        if (iinfo == null) {
+            return 0;
+        }
+        return iinfo.regs - iinfo.outs;
+    }
+
+    public int getInputsCount() {
+        InvokeInfo iinfo = info.iinfo;
+        if (iinfo == null) {
+            return 0;
+        }
+        return iinfo.ins;
+    }
+
+    public int getOutputsCount() {
+        InvokeInfo iinfo = info.iinfo;
+        if (iinfo == null) {
+            return 0;
+        }
+        return iinfo.outs;
+    }
+
+    public int getRegistersCount() {
+        InvokeInfo iinfo = info.iinfo;
+        if (iinfo == null) {
+            return 0;
+        }
+        return iinfo.regs;
+    }
+
+    private InvokeRequest invoke(StackElement current) {
         InvokeInfo iinfo = info.iinfo;
         if (iinfo == null) {
             return null;
         }
-        ByteBuffer bb = Machine.allocate(iinfo.regs);
-        if (in != null) {
-            int ins = Math.min(iinfo.ins, in.remaining());
-            NewApiUtils.put(bb, iinfo.regs - iinfo.outs - iinfo.ins, in, in.position(), ins);
-        }
-        iinfo.h.handle(this, bb);
-        bb.clear();
-        return fixOrder(slice(bb, iinfo.regs - iinfo.outs, iinfo.outs));
+        return iinfo.h.handle(current);
     }
 }

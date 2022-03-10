@@ -1,6 +1,7 @@
 package com.v7878.avm.utils;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Map;
 
 public class NewApiUtils {
@@ -62,5 +63,16 @@ public class NewApiUtils {
             return r - ((~(r - divisor) >> (Long.SIZE - 1)) & divisor);
         }
         return dividend - (((dividend & ~(dividend - divisor)) >> (Long.SIZE - 1)) & divisor);
+    }
+
+    public static void fillZeros(ByteBuffer bb, int position, int length) {
+        if (bb.hasArray()) {
+            int start = position + bb.arrayOffset();
+            Arrays.fill(bb.array(), start, start + length, (byte) 0);
+        } else {
+            for (int i = position; i < length; i++) {
+                bb.put((byte) 0);
+            }
+        }
     }
 }
