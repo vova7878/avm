@@ -70,23 +70,23 @@ public class Main {
 
         public static void init() {
             Machine m = Machine.get();
-            Node n = m.newNode((node, data)
+            Node n = m.newNode((NodeHandler2) (node, data)
                     -> initDisplay(data.getInt(), data.getInt()),
                     8, 0);
             m.setNodeName(n, "display.init(II)");
-            n = m.newNode((node, data)
+            n = m.newNode((NodeHandler2) (node, data)
                     -> swap(),
                     0, 0);
             m.setNodeName(n, "display.swap()");
-            n = m.newNode((node, data)
+            n = m.newNode((NodeHandler2) (node, data)
                     -> pixel(data.getInt(), data.getInt(), data.getInt()),
                     12, 0);
             m.setNodeName(n, "display.pixel(III)");
-            n = m.newNode((node, data)
+            n = m.newNode((NodeHandler2) (node, data)
                     -> fill(data.getInt()),
                     4, 0);
             m.setNodeName(n, "display.fill(I)");
-            n = m.newNode((node, data) -> {
+            n = m.newNode((NodeHandler2) (node, data) -> {
                 data.putInt(getColor(data.getInt(), data.getInt()));
             }, 8, 4);
             m.setNodeName(n, "display.getColor(II)");

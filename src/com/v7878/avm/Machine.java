@@ -195,6 +195,9 @@ public final class Machine {
 
     private void fillOutput(ByteBuffer vdata, StackElement se,
             InvokeRequest req) {
+        if (req.rsize == 0) {
+            return;
+        }
         put(vdata, req.ret, se.vdata,
                 se.node.getOutputOffset(), req.rsize);
     }
@@ -210,7 +213,8 @@ public final class Machine {
             ByteBuffer out, int offsetOut, int lengthOut) {
         ThreadContext current = ThreadContext.getCurrent();
         StackElement se = null;
-        InvokeRequest req = new InvokeRequest(node, slice(in, offsetIn, lengthIn), 0, 0);
+        InvokeRequest req = new InvokeRequest(node,
+                in == null ? null : slice(in, offsetIn, lengthIn), 0, 0);
         while (true) {
             if (req == null) {
                 endInvoke(se.node);
@@ -233,6 +237,13 @@ public final class Machine {
             }
             req = startInvoke(se);
         }
+    }
+
+    public ByteBuffer invoke(Node node, ByteBuffer in) {
+        ByteBuffer out = allocate(node.getOutputsCount());
+        invoke(node, in, in == null ? 0 : in.position(), in == null ? 0 : in.remaining(),
+                 out, 0, out.capacity());
+        return out;
     }
 
     public Node getNode(int index) {
